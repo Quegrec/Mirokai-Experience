@@ -12,194 +12,403 @@
 			handleZoneClick(zone);
 		}
 	}
+
+	// Définition des zones avec leurs positions en pourcentage sur l'image
+	// Image: 7791 x 4500 pixels - Coordonnées converties en pourcentages
+	const zoneOverlays = [
+		{
+			id: 'mirokai-experience',
+			zone: zones[0],
+			// Rectangle: 386,317 → 3081,2794
+			path: 'M 4.95 7.04 L 4.95 62.09 L 39.54 62.09 L 39.54 7.04 Z',
+			labelX: 22,
+			labelY: 35,
+			labelLines: ['MIROKAÏ', 'EXPERIENCE']
+		},
+		{
+			id: 'spoon',
+			zone: zones[1],
+			// Polygone: 3087,988 → 5816,988 → 5818,1620 → 4777,3170 → 3087,3170
+			path: 'M 39.62 21.96 L 74.65 21.96 L 74.68 36 L 61.31 70.44 L 39.62 70.44 Z',
+			labelX: 52,
+			labelY: 45,
+			labelLines: ['ZONE PARTENAIRE', 'SPOON']
+		},
+		{
+			id: 'regie',
+			zone: zones[2],
+			// Rectangle: 844,2790 → 1290,3270
+			path: 'M 10.83 62 L 10.83 72.67 L 16.56 72.67 L 16.56 62 Z',
+			labelX: 13.7,
+			labelY: 67,
+			labelLines: ['RÉGIE']
+		},
+		{
+			id: 'cyclage',
+			zone: zones[3],
+			// Rectangle: 1287,2790 → 2172,4084
+			path: 'M 16.52 62 L 16.52 90.76 L 27.88 90.76 L 27.88 62 Z',
+			labelX: 22,
+			labelY: 76,
+			labelLines: ['SALLE DE', 'CYCLAGE']
+		}
+	];
 </script>
 
-<div class="relative w-full h-full min-h-[500px] p-4">
-	<!-- Titre du plan -->
-	<div class="absolute top-4 left-4 z-10">
-		<h2 class="text-xl font-semibold text-[var(--color-text-primary)] tracking-tight">
-			Plan d'étage
-		</h2>
-		<p class="text-sm text-[var(--color-text-muted)]">Enchanted Tools — Centre robotique</p>
+<div class="map-container">
+	<!-- Indicateur de niveau -->
+	<div class="floor-indicator">
+		<span class="floor-label">PLAN</span>
+		<span class="floor-number">-1</span>
 	</div>
 
 	<!-- Légende -->
-	<div class="absolute top-4 right-4 z-10 glass rounded-lg p-3 text-xs">
-		<div class="flex items-center gap-2 mb-1">
-			<span class="w-2 h-2 rounded-full bg-green-500"></span>
-			<span class="text-[var(--color-text-secondary)]">Actif</span>
+	<div class="legend">
+		<div class="legend-title">Légende</div>
+		<div class="legend-item">
+			<span class="legend-dot active"></span>
+			<span>Actif</span>
 		</div>
-		<div class="flex items-center gap-2 mb-1">
-			<span class="w-2 h-2 rounded-full bg-amber-500"></span>
-			<span class="text-[var(--color-text-secondary)]">Maintenance</span>
+		<div class="legend-item">
+			<span class="legend-dot maintenance"></span>
+			<span>Maintenance</span>
 		</div>
-		<div class="flex items-center gap-2">
-			<span class="w-2 h-2 rounded-full bg-red-500"></span>
-			<span class="text-[var(--color-text-secondary)]">Inactif</span>
+		<div class="legend-item">
+			<span class="legend-dot inactive"></span>
+			<span>Inactif</span>
 		</div>
 	</div>
 
-	<!-- SVG Plan interactif -->
-	<svg
-		viewBox="0 0 800 600"
-		class="w-full h-full"
-		role="img"
-		aria-label="Plan interactif du centre robotique"
-	>
-		<!-- Grille de fond -->
-		<defs>
-			<pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
-				<path d="M 40 0 L 0 0 0 40" fill="none" stroke="var(--color-border)" stroke-width="0.5" opacity="0.3"/>
-			</pattern>
-		</defs>
-		<rect width="100%" height="100%" fill="url(#grid)" />
-
-		<!-- Cadre principal du bâtiment -->
-		<rect
-			x="50"
-			y="50"
-			width="700"
-			height="500"
-			fill="none"
-			stroke="var(--color-border)"
-			stroke-width="2"
-			rx="8"
+	<!-- Image du plan en arrière-plan -->
+	<div class="plan-wrapper">
+		<img
+			src="/plan-1.png"
+			alt="Plan du niveau -1 - Centre Enchanted Tools"
+			class="plan-image"
 		/>
 
-		<!-- Zone Mirokaï Experience -->
-		<g
-			class="zone-interactive cursor-pointer"
-			role="button"
-			tabindex="0"
-			aria-label="Zone Mirokaï Experience"
-			onclick={() => handleZoneClick(zones[0])}
-			onkeydown={(e) => handleKeyDown(e, zones[0])}
+		<!-- SVG overlay pour les zones cliquables -->
+		<svg
+			viewBox="0 0 100 100"
+			preserveAspectRatio="none"
+			class="zones-overlay"
+			role="img"
+			aria-label="Zones interactives du plan"
 		>
-			<rect
-				x="60"
-				y="60"
-				width="340"
-				height="280"
-				fill="var(--zone-mirokai)"
-				fill-opacity={$selectedZone?.id === 'mirokai-experience' ? 0.4 : 0.15}
-				stroke="var(--zone-mirokai)"
-				stroke-width={$selectedZone?.id === 'mirokai-experience' ? 3 : 1.5}
-				rx="6"
-			/>
-			<text x="230" y="190" text-anchor="middle" fill="var(--zone-mirokai)" font-size="18" font-weight="600">
-				Mirokaï
-			</text>
-			<text x="230" y="215" text-anchor="middle" fill="var(--zone-mirokai)" font-size="14" opacity="0.8">
-				Experience
-			</text>
-			<!-- Indicateur de status -->
-			<circle cx="380" cy="80" r="6" fill="#10b981" />
-		</g>
+			{#each zoneOverlays as overlay}
+				<g
+					class="zone-interactive"
+					class:selected={$selectedZone?.id === overlay.id}
+					role="button"
+					tabindex="0"
+					aria-label={overlay.zone.nom}
+					onclick={() => handleZoneClick(overlay.zone)}
+					onkeydown={(e) => handleKeyDown(e, overlay.zone)}
+				>
+					<path
+						d={overlay.path}
+						fill={overlay.zone.couleur}
+						fill-opacity={$selectedZone?.id === overlay.id ? 0.35 : 0.08}
+						stroke={overlay.zone.couleur}
+						stroke-width={$selectedZone?.id === overlay.id ? 0.4 : 0.15}
+						class="zone-path"
+					/>
+					<!-- Indicateur de statut -->
+					<circle
+						cx={overlay.labelX + 8}
+						cy={overlay.labelY - 6}
+						r="1"
+						class="status-indicator"
+						class:active={overlay.zone.status === 'actif'}
+						class:maintenance={overlay.zone.status === 'maintenance'}
+						class:inactive={overlay.zone.status === 'inactif'}
+					/>
+				</g>
+			{/each}
+		</svg>
+	</div>
 
-		<!-- Zone Spoon -->
-		<g
-			class="zone-interactive cursor-pointer"
-			role="button"
-			tabindex="0"
-			aria-label="Zone Spoon"
-			onclick={() => handleZoneClick(zones[1])}
-			onkeydown={(e) => handleKeyDown(e, zones[1])}
-		>
-			<rect
-				x="420"
-				y="60"
-				width="320"
-				height="200"
-				fill="var(--zone-spoon)"
-				fill-opacity={$selectedZone?.id === 'spoon' ? 0.4 : 0.15}
-				stroke="var(--zone-spoon)"
-				stroke-width={$selectedZone?.id === 'spoon' ? 3 : 1.5}
-				rx="6"
-			/>
-			<text x="580" y="155" text-anchor="middle" fill="var(--zone-spoon)" font-size="18" font-weight="600">
-				Zone Spoon
-			</text>
-			<text x="580" y="180" text-anchor="middle" fill="var(--zone-spoon)" font-size="12" opacity="0.8">
-				Service robotique
-			</text>
-			<circle cx="720" cy="80" r="6" fill="#10b981" />
-		</g>
-
-		<!-- Régie -->
-		<g
-			class="zone-interactive cursor-pointer"
-			role="button"
-			tabindex="0"
-			aria-label="Régie"
-			onclick={() => handleZoneClick(zones[2])}
-			onkeydown={(e) => handleKeyDown(e, zones[2])}
-		>
-			<rect
-				x="420"
-				y="280"
-				width="320"
-				height="130"
-				fill="var(--zone-regie)"
-				fill-opacity={$selectedZone?.id === 'regie' ? 0.4 : 0.15}
-				stroke="var(--zone-regie)"
-				stroke-width={$selectedZone?.id === 'regie' ? 3 : 1.5}
-				rx="6"
-			/>
-			<text x="580" y="350" text-anchor="middle" fill="var(--zone-regie)" font-size="18" font-weight="600">
-				Régie
-			</text>
-			<text x="580" y="375" text-anchor="middle" fill="var(--zone-regie)" font-size="12" opacity="0.8">
-				Centre de contrôle
-			</text>
-			<circle cx="720" cy="300" r="6" fill="#10b981" />
-		</g>
-
-		<!-- Salle de Cyclage -->
-		<g
-			class="zone-interactive cursor-pointer"
-			role="button"
-			tabindex="0"
-			aria-label="Salle de Cyclage"
-			onclick={() => handleZoneClick(zones[3])}
-			onkeydown={(e) => handleKeyDown(e, zones[3])}
-		>
-			<rect
-				x="60"
-				y="360"
-				width="340"
-				height="180"
-				fill="var(--zone-cyclage)"
-				fill-opacity={$selectedZone?.id === 'cyclage' ? 0.4 : 0.15}
-				stroke="var(--zone-cyclage)"
-				stroke-width={$selectedZone?.id === 'cyclage' ? 3 : 1.5}
-				rx="6"
-			/>
-			<text x="230" y="445" text-anchor="middle" fill="var(--zone-cyclage)" font-size="18" font-weight="600">
-				Salle de Cyclage
-			</text>
-			<text x="230" y="470" text-anchor="middle" fill="var(--zone-cyclage)" font-size="12" opacity="0.8">
-				Recharge & Maintenance
-			</text>
-			<!-- Status maintenance -->
-			<circle cx="380" cy="380" r="6" fill="#f59e0b" />
-		</g>
-
-		<!-- Couloirs / Circulation -->
-		<path
-			d="M 400 200 L 400 430 L 420 430"
-			fill="none"
-			stroke="var(--color-text-muted)"
-			stroke-width="1"
-			stroke-dasharray="8 4"
-			opacity="0.5"
-		/>
-		<path
-			d="M 400 200 L 420 200"
-			fill="none"
-			stroke="var(--color-text-muted)"
-			stroke-width="1"
-			stroke-dasharray="8 4"
-			opacity="0.5"
-		/>
-	</svg>
+	<!-- Info rapide de la zone sélectionnée -->
+	{#if $selectedZone}
+		<div class="quick-info">
+			<div class="quick-info-dot" style="background: {$selectedZone.couleur}"></div>
+			<span class="quick-info-name">{$selectedZone.nom}</span>
+			<span class="quick-info-status" class:active={$selectedZone.status === 'actif'} class:maintenance={$selectedZone.status === 'maintenance'}>
+				{$selectedZone.status}
+			</span>
+		</div>
+	{/if}
 </div>
+
+<style>
+	.map-container {
+		position: relative;
+		width: 100%;
+		height: 100%;
+		min-height: 550px;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		padding: 1rem;
+		overflow: hidden;
+	}
+
+	.floor-indicator {
+		position: absolute;
+		bottom: 1.5rem;
+		right: 1.5rem;
+		z-index: 10;
+		display: flex;
+		align-items: baseline;
+		gap: 0.35rem;
+		font-family: var(--font-mono);
+		padding: 0.5rem 1rem;
+		background: rgba(13, 17, 23, 0.85);
+		backdrop-filter: blur(12px);
+		border-radius: 1rem;
+		border: 1px solid rgba(14, 170, 146, 0.2);
+	}
+
+	.floor-label {
+		font-size: 0.75rem;
+		font-weight: 600;
+		color: var(--magic-turquoise);
+		letter-spacing: 0.1em;
+		text-transform: uppercase;
+	}
+
+	.floor-number {
+		font-size: 1.25rem;
+		font-weight: 700;
+		background: linear-gradient(135deg, var(--magic-turquoise), var(--magic-purple));
+		-webkit-background-clip: text;
+		-webkit-text-fill-color: transparent;
+		background-clip: text;
+	}
+
+	.legend {
+		position: absolute;
+		top: 1rem;
+		right: 1rem;
+		z-index: 10;
+		background: linear-gradient(135deg, rgba(21, 27, 35, 0.9) 0%, rgba(13, 17, 23, 0.95) 100%);
+		backdrop-filter: blur(16px);
+		border: 1px solid rgba(158, 99, 165, 0.2);
+		border-radius: 1rem;
+		padding: 1rem 1.25rem;
+		font-size: 0.75rem;
+	}
+
+	.legend-title {
+		font-weight: 600;
+		color: var(--magic-purple);
+		margin-bottom: 0.75rem;
+		text-transform: uppercase;
+		letter-spacing: 0.15em;
+		font-size: 0.625rem;
+		display: flex;
+		align-items: center;
+		gap: 0.375rem;
+	}
+
+	.legend-title::before {
+		content: '✦';
+		font-size: 0.5rem;
+	}
+
+	.legend-item {
+		display: flex;
+		align-items: center;
+		gap: 0.625rem;
+		color: var(--color-text-secondary);
+		margin-bottom: 0.375rem;
+		font-size: 0.7rem;
+	}
+
+	.legend-item:last-child {
+		margin-bottom: 0;
+	}
+
+	.legend-dot {
+		width: 0.5rem;
+		height: 0.5rem;
+		border-radius: 50%;
+		box-shadow: 0 0 8px currentColor;
+	}
+
+	.legend-dot.active { 
+		background: var(--magic-turquoise); 
+		color: var(--magic-turquoise);
+	}
+	.legend-dot.maintenance { 
+		background: var(--magic-orange); 
+		color: var(--magic-orange);
+	}
+	.legend-dot.inactive { 
+		background: var(--magic-magenta); 
+		color: var(--magic-magenta);
+	}
+
+	.plan-wrapper {
+		position: relative;
+		width: 100%;
+		max-width: 1100px;
+		border-radius: 1rem;
+		overflow: hidden;
+		box-shadow: 
+			0 4px 24px rgba(0, 0, 0, 0.4),
+			0 0 60px rgba(14, 170, 146, 0.08),
+			0 0 100px rgba(163, 51, 124, 0.05);
+	}
+	
+	.plan-wrapper::before {
+		content: '';
+		position: absolute;
+		inset: 0;
+		border-radius: 1rem;
+		padding: 1px;
+		background: linear-gradient(135deg, rgba(14, 170, 146, 0.3), rgba(163, 51, 124, 0.2), rgba(158, 99, 165, 0.3));
+		-webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+		-webkit-mask-composite: xor;
+		mask-composite: exclude;
+		pointer-events: none;
+		z-index: 5;
+	}
+
+	.plan-image {
+		width: 100%;
+		height: auto;
+		display: block;
+		user-select: none;
+		pointer-events: none;
+	}
+
+	.zones-overlay {
+		position: absolute;
+		top: 0;
+		left: 0;
+		width: 100%;
+		height: 100%;
+	}
+
+	.zone-path {
+		cursor: pointer;
+		transition: fill-opacity 0.2s ease, stroke-width 0.2s ease;
+	}
+
+	.zone-interactive:hover .zone-path {
+		fill-opacity: 0.25;
+		stroke-width: 0.3;
+	}
+
+	.zone-interactive.selected .zone-path {
+		fill-opacity: 0.35;
+		stroke-width: 0.4;
+	}
+
+	.zone-interactive:focus {
+		outline: none;
+	}
+
+	.zone-interactive:focus .zone-path {
+		stroke-width: 0.5;
+		stroke-dasharray: 0.5 0.3;
+	}
+
+	.status-indicator {
+		pointer-events: none;
+		filter: drop-shadow(0 0 4px currentColor);
+	}
+
+	.status-indicator.active { fill: var(--magic-turquoise); }
+	.status-indicator.maintenance { fill: var(--magic-orange); }
+	.status-indicator.inactive { fill: var(--magic-magenta); }
+
+	.quick-info {
+		position: absolute;
+		bottom: 1rem;
+		left: 1rem;
+		z-index: 10;
+		display: flex;
+		align-items: center;
+		gap: 0.75rem;
+		background: linear-gradient(135deg, rgba(21, 27, 35, 0.92) 0%, rgba(13, 17, 23, 0.95) 100%);
+		backdrop-filter: blur(16px);
+		border: 1px solid rgba(14, 170, 146, 0.25);
+		border-radius: 2rem;
+		padding: 0.625rem 1.25rem;
+		font-size: 0.875rem;
+		animation: fadeIn 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+		box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+	}
+
+	.quick-info-dot {
+		width: 0.625rem;
+		height: 0.625rem;
+		border-radius: 50%;
+		box-shadow: 0 0 10px currentColor;
+		animation: bioluminescence 2s ease-in-out infinite;
+	}
+
+	@keyframes bioluminescence {
+		0%, 100% { opacity: 0.7; }
+		50% { opacity: 1; }
+	}
+
+	.quick-info-name {
+		color: var(--color-text-primary);
+		font-weight: 600;
+	}
+
+	.quick-info-status {
+		text-transform: uppercase;
+		font-size: 0.625rem;
+		font-weight: 700;
+		letter-spacing: 0.08em;
+		padding: 0.25rem 0.625rem;
+		border-radius: 1rem;
+		background: var(--color-bg-tertiary);
+		color: var(--color-text-muted);
+	}
+
+	.quick-info-status.active {
+		background: rgba(14, 170, 146, 0.15);
+		color: var(--magic-turquoise);
+		border: 1px solid rgba(14, 170, 146, 0.3);
+	}
+
+	.quick-info-status.maintenance {
+		background: rgba(240, 152, 3, 0.15);
+		color: var(--magic-orange);
+		border: 1px solid rgba(240, 152, 3, 0.3);
+	}
+
+	@keyframes fadeIn {
+		from { opacity: 0; transform: translateY(8px); }
+		to { opacity: 1; transform: translateY(0); }
+	}
+
+	/* Responsive */
+	@media (max-width: 768px) {
+		.map-container {
+			padding: 0.5rem;
+		}
+
+		.legend {
+			top: 0.5rem;
+			right: 0.5rem;
+			padding: 0.5rem 0.75rem;
+		}
+
+		.floor-indicator {
+			bottom: 0.75rem;
+			right: 0.75rem;
+		}
+
+		.quick-info {
+			left: 0.5rem;
+			bottom: 0.5rem;
+			font-size: 0.75rem;
+		}
+	}
+</style>

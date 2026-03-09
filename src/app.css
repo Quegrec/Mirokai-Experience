@@ -1,27 +1,42 @@
 @import "tailwindcss";
 
-/* === Éco-conception : Polices système uniquement === */
+/* === Forêt Enchantée — Palette Moodboard === */
 :root {
 	--font-system: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
 	--font-mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
 	
-	/* Palette Dark Mode par défaut - Enchanted Tools */
-	--color-bg-primary: #0a0a0f;
-	--color-bg-secondary: #12121a;
-	--color-bg-tertiary: #1a1a24;
-	--color-accent: #00d4aa;
-	--color-accent-dim: #00a88a;
-	--color-text-primary: #f0f0f5;
-	--color-text-secondary: #a0a0b0;
-	--color-text-muted: #606070;
-	--color-border: #2a2a3a;
-	--color-border-hover: #3a3a4a;
+	/* Palette Dark Mode - Forêt Enchantée Bioluminescente */
+	--color-bg-primary: #0d1117;
+	--color-bg-secondary: #151b23;
+	--color-bg-tertiary: #1c2430;
+	--color-accent: #0eaa92;         /* Turquoise bioluminescent */
+	--color-accent-dim: #0a8a75;
+	--color-accent-warm: #f09803;    /* Orange secondaire */
+	--color-text-primary: #e8f0f8;
+	--color-text-secondary: #9eafc0;
+	--color-text-muted: #5d7085;
+	--color-border: #243040;
+	--color-border-hover: #324050;
 	
-	/* Zones - Couleurs distinctives */
-	--zone-mirokai: #7c3aed;
-	--zone-spoon: #f59e0b;
-	--zone-regie: #06b6d4;
-	--zone-cyclage: #10b981;
+	/* Couleurs magiques - Moodboard */
+	--magic-blue: #004aad;
+	--magic-magenta: #a3337c;
+	--magic-purple: #9e63a5;
+	--magic-turquoise: #0eaa92;
+	--magic-orange: #f09803;
+	--magic-dark: #202020;
+	
+	/* Zones - Adaptées au thème enchanté */
+	--zone-mirokai: #a3337c;      /* Magenta - Mirokaï Experience */
+	--zone-spoon: #0eaa92;        /* Turquoise - Zone Partenaire Spoon */
+	--zone-regie: #004aad;        /* Bleu profond - Régie */
+	--zone-cyclage: #9e63a5;      /* Violet lavande - Salle de Cyclage */
+	
+	/* Effets lumineux */
+	--glow-turquoise: 0 0 20px rgba(14, 170, 146, 0.4);
+	--glow-magenta: 0 0 20px rgba(163, 51, 124, 0.4);
+	--glow-purple: 0 0 20px rgba(158, 99, 165, 0.4);
+	--glow-orange: 0 0 15px rgba(240, 152, 3, 0.3);
 }
 
 * {
@@ -39,37 +54,150 @@ html {
 body {
 	margin: 0;
 	min-height: 100vh;
+	/* Background forêt enchantée avec dégradé subtil */
+	background: 
+		radial-gradient(ellipse at 20% 80%, rgba(14, 170, 146, 0.06) 0%, transparent 50%),
+		radial-gradient(ellipse at 80% 20%, rgba(163, 51, 124, 0.05) 0%, transparent 50%),
+		radial-gradient(ellipse at 50% 50%, rgba(0, 74, 173, 0.03) 0%, transparent 60%),
+		var(--color-bg-primary);
+	background-attachment: fixed;
 }
 
-/* === Animations légères pour l'éco-conception === */
+/* === Animations magiques === */
 @media (prefers-reduced-motion: no-preference) {
-	.zone-interactive {
-		transition: transform 0.2s ease-out, opacity 0.2s ease-out;
-	}
-	
-	.zone-interactive:hover {
-		transform: scale(1.02);
-	}
-	
 	.sidebar-enter {
-		animation: slideIn 0.3s ease-out;
+		animation: slideIn 0.35s cubic-bezier(0.16, 1, 0.3, 1);
 	}
 	
 	@keyframes slideIn {
 		from {
 			opacity: 0;
-			transform: translateX(20px);
+			transform: translateX(24px);
 		}
 		to {
 			opacity: 1;
 			transform: translateX(0);
 		}
 	}
+	
+	/* Animation lueur bioluminescente */
+	@keyframes bioluminescence {
+		0%, 100% { opacity: 0.6; }
+		50% { opacity: 1; }
+	}
+	
+	@keyframes floatGlow {
+		0%, 100% { 
+			transform: translateY(0px);
+			filter: drop-shadow(0 0 8px currentColor);
+		}
+		50% { 
+			transform: translateY(-4px);
+			filter: drop-shadow(0 0 16px currentColor);
+		}
+	}
+	
+	.glow-pulse {
+		animation: bioluminescence 3s ease-in-out infinite;
+	}
+	
+	.float-glow {
+		animation: floatGlow 4s ease-in-out infinite;
+	}
 }
 
-/* === Utilities === */
+/* === Utilities - Style Forêt Enchantée === */
 .glass {
-	background: rgba(18, 18, 26, 0.8);
-	backdrop-filter: blur(12px);
-	border: 1px solid var(--color-border);
+	background: linear-gradient(
+		135deg,
+		rgba(21, 27, 35, 0.85) 0%,
+		rgba(13, 17, 23, 0.9) 100%
+	);
+	backdrop-filter: blur(16px);
+	border: 1px solid rgba(14, 170, 146, 0.15);
+	box-shadow: 
+		0 4px 24px rgba(0, 0, 0, 0.3),
+		inset 0 1px 0 rgba(255, 255, 255, 0.03);
+}
+
+.glass-magenta {
+	background: linear-gradient(
+		135deg,
+		rgba(163, 51, 124, 0.1) 0%,
+		rgba(13, 17, 23, 0.9) 100%
+	);
+	border-color: rgba(163, 51, 124, 0.2);
+}
+
+.glass-turquoise {
+	background: linear-gradient(
+		135deg,
+		rgba(14, 170, 146, 0.1) 0%,
+		rgba(13, 17, 23, 0.9) 100%
+	);
+	border-color: rgba(14, 170, 146, 0.2);
+}
+
+/* Effet champignon magique - lueur subtile */
+.magic-glow {
+	position: relative;
+}
+
+.magic-glow::after {
+	content: '';
+	position: absolute;
+	inset: -1px;
+	border-radius: inherit;
+	background: linear-gradient(
+		135deg,
+		rgba(14, 170, 146, 0.3) 0%,
+		rgba(163, 51, 124, 0.2) 50%,
+		rgba(158, 99, 165, 0.3) 100%
+	);
+	z-index: -1;
+	opacity: 0;
+	transition: opacity 0.3s ease;
+	filter: blur(8px);
+}
+
+.magic-glow:hover::after {
+	opacity: 1;
+}
+
+/* Boutons enchantés */
+.btn-magic {
+	background: linear-gradient(135deg, var(--magic-turquoise) 0%, var(--magic-magenta) 100%);
+	color: white;
+	border: none;
+	font-weight: 600;
+	transition: all 0.25s ease;
+	box-shadow: 0 2px 12px rgba(14, 170, 146, 0.3);
+}
+
+.btn-magic:hover {
+	transform: translateY(-2px);
+	box-shadow: 
+		0 4px 20px rgba(14, 170, 146, 0.4),
+		0 0 30px rgba(163, 51, 124, 0.2);
+}
+
+/* Accent barre latérale colorée */
+.accent-bar {
+	position: relative;
+}
+
+.accent-bar::before {
+	content: '';
+	position: absolute;
+	left: 0;
+	top: 0;
+	bottom: 0;
+	width: 3px;
+	background: linear-gradient(
+		to bottom,
+		var(--magic-turquoise) 0%,
+		var(--magic-purple) 50%,
+		var(--magic-magenta) 100%
+	);
+	border-radius: 0 2px 2px 0;
 }
