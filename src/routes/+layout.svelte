@@ -1,6 +1,6 @@
 <script lang="ts">
 	import '../app.css';
-	import { Sparkles } from 'lucide-svelte';
+	import { Sparkles, Settings } from 'lucide-svelte';
 	import Sidebar from '$lib/components/Sidebar.svelte';
 
 	let { children } = $props();
@@ -44,6 +44,14 @@
 			</div>
 
 			<div class="flex items-center gap-3">
+				<!-- Lien Admin -->
+				<a 
+					href="/admin"
+					class="flex items-center gap-2 px-3 py-2 rounded-xl glass hover:bg-[var(--color-bg-tertiary)] text-[var(--color-text-muted)] hover:text-[var(--magic-purple)] transition-colors"
+				>
+					<Settings size={16} />
+					<span class="text-xs font-medium hidden sm:inline">Admin</span>
+				</a>
 				<!-- Status magique -->
 				<span class="flex items-center gap-2 px-4 py-2 rounded-full glass-turquoise">
 					<span class="w-2 h-2 rounded-full bg-[var(--magic-turquoise)] glow-pulse shadow-[var(--glow-turquoise)]"></span>

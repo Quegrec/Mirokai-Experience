@@ -1,6 +1,14 @@
 <script lang="ts">
 	import { zones, type Zone } from '$lib/data/zones';
 	import { selectedZone, selectZone } from '$lib/stores/selectedZone';
+	import { Play, Hand, HelpCircle, Info, Sparkles } from 'lucide-svelte';
+	import type { ModuleRow } from '$lib/supabase/types';
+
+	interface Props {
+		modules?: ModuleRow[];
+	}
+
+	let { modules = [] }: Props = $props();
 
 	function handleZoneClick(zone: Zone): void {
 		selectZone(zone);
@@ -11,6 +19,34 @@
 			event.preventDefault();
 			handleZoneClick(zone);
 		}
+	}
+
+	// Modules positionnés sur la carte
+	const positionedModules = $derived(
+		modules.filter(m => m.position !== null && m.status === 'actif')
+	);
+
+	const typeIcons = {
+		video: Play,
+		interaction: Hand,
+		quiz: HelpCircle,
+		info: Info,
+		experience: Sparkles
+	};
+
+	const typeColors = {
+		video: 'var(--magic-turquoise)',
+		interaction: 'var(--magic-purple)',
+		quiz: 'var(--magic-orange)',
+		info: 'var(--magic-blue)',
+		experience: 'var(--magic-magenta)'
+	};
+
+	// Module sélectionné
+	let selectedModule = $state<ModuleRow | null>(null);
+
+	function handleModuleClick(module: ModuleRow) {
+		selectedModule = selectedModule?.id === module.id ? null : module;
 	}
 
 	// Définition des zones avec leurs positions en pourcentage sur l'image
@@ -126,6 +162,26 @@
 				</g>
 			{/each}
 		</svg>
+
+		<!-- Marqueurs des modules positionnés -->
+		{#each positionedModules as module (module.id)}
+			{@const Icon = typeIcons[module.type]}
+			{@const pos = module.position}
+			{#if pos}
+				<button
+					class="module-marker"
+					class:selected={selectedModule?.id === module.id}
+					style="left: {pos.x}%; top: {pos.y}%; --module-color: {typeColors[module.type]}"
+					onclick={() => handleModuleClick(module)}
+					aria-label="Module: {module.nom}"
+				>
+					<div class="marker-icon">
+						<Icon size={14} />
+					</div>
+					<span class="marker-order">{module.ordre}</span>
+				</button>
+			{/if}
+		{/each}
 	</div>
 
 	<!-- Info rapide de la zone sélectionnée -->
@@ -136,6 +192,30 @@
 			<span class="quick-info-status" class:active={$selectedZone.status === 'actif'} class:maintenance={$selectedZone.status === 'maintenance'}>
 				{$selectedZone.status}
 			</span>
+		</div>
+	{/if}
+
+	<!-- Info du module sélectionné -->
+	{#if selectedModule}
+		{@const ModuleIcon = typeIcons[selectedModule.type]}
+		<div class="module-info glass" style="--module-color: {typeColors[selectedModule.type]}">
+			<div class="module-info-header">
+				<div class="module-info-icon" style="background: {typeColors[selectedModule.type]}">
+					<ModuleIcon size={16} />
+				</div>
+				<div>
+					<h4 class="module-info-title">{selectedModule.nom}</h4>
+					<p class="module-info-duration">{selectedModule.duree_estimee} min</p>
+				</div>
+			</div>
+			<p class="module-info-desc">{selectedModule.description}</p>
+			{#if selectedModule.contenu?.instructions?.length}
+				<ul class="module-info-instructions">
+					{#each selectedModule.contenu.instructions as instruction}
+						<li>{instruction}</li>
+					{/each}
+				</ul>
+			{/if}
 		</div>
 	{/if}
 </div>
@@ -324,6 +404,124 @@
 	.status-indicator.maintenance { fill: var(--magic-orange); }
 	.status-indicator.inactive { fill: var(--magic-magenta); }
 
+	/* Marqueurs de modules */
+	.module-marker {
+		position: absolute;
+		transform: translate(-50%, -50%);
+		z-index: 15;
+		cursor: pointer;
+		border: none;
+		background: none;
+		padding: 0;
+	}
+
+	.marker-icon {
+		width: 28px;
+		height: 28px;
+		border-radius: 50%;
+		background: linear-gradient(135deg, var(--module-color), color-mix(in srgb, var(--module-color) 70%, black));
+		color: white;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		box-shadow: 
+			0 2px 8px rgba(0, 0, 0, 0.3),
+			0 0 12px color-mix(in srgb, var(--module-color) 40%, transparent);
+		border: 2px solid rgba(255, 255, 255, 0.9);
+		transition: transform 0.2s ease, box-shadow 0.2s ease;
+	}
+
+	.marker-order {
+		position: absolute;
+		top: -6px;
+		right: -6px;
+		width: 16px;
+		height: 16px;
+		border-radius: 50%;
+		background: var(--color-bg-primary);
+		color: var(--module-color);
+		font-size: 9px;
+		font-weight: 700;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		border: 1px solid var(--module-color);
+	}
+
+	.module-marker:hover .marker-icon,
+	.module-marker.selected .marker-icon {
+		transform: scale(1.2);
+		box-shadow: 
+			0 4px 16px rgba(0, 0, 0, 0.4),
+			0 0 20px color-mix(in srgb, var(--module-color) 60%, transparent);
+	}
+
+	.module-marker.selected .marker-icon {
+		border-color: white;
+		border-width: 3px;
+	}
+
+	/* Info module */
+	.module-info {
+		position: absolute;
+		top: 1rem;
+		left: 1rem;
+		z-index: 20;
+		max-width: 280px;
+		border-radius: 1rem;
+		padding: 1rem;
+		border: 1px solid var(--module-color);
+		animation: fadeIn 0.2s ease;
+	}
+
+	.module-info-header {
+		display: flex;
+		align-items: center;
+		gap: 0.75rem;
+		margin-bottom: 0.75rem;
+	}
+
+	.module-info-icon {
+		width: 36px;
+		height: 36px;
+		border-radius: 10px;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		color: white;
+	}
+
+	.module-info-title {
+		font-size: 0.875rem;
+		font-weight: 600;
+		color: var(--color-text-primary);
+		margin: 0;
+	}
+
+	.module-info-duration {
+		font-size: 0.7rem;
+		color: var(--module-color);
+		margin: 0;
+	}
+
+	.module-info-desc {
+		font-size: 0.75rem;
+		color: var(--color-text-secondary);
+		margin: 0 0 0.75rem 0;
+		line-height: 1.4;
+	}
+
+	.module-info-instructions {
+		margin: 0;
+		padding-left: 1rem;
+		font-size: 0.7rem;
+		color: var(--color-text-muted);
+	}
+
+	.module-info-instructions li {
+		margin-bottom: 0.25rem;
+	}
+
 	.quick-info {
 		position: absolute;
 		bottom: 1rem;
@@ -409,6 +607,12 @@
 			left: 0.5rem;
 			bottom: 0.5rem;
 			font-size: 0.75rem;
+		}
+
+		.module-info {
+			left: 0.5rem;
+			right: 0.5rem;
+			max-width: none;
 		}
 	}
 </style>
