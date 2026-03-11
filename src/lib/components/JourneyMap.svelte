@@ -27,10 +27,24 @@
 	const journeyNodes = $derived.by(() => {
 		const nodes: JourneyNode[] = [];
 
-		// Trier les modules par ordre
+		// Trier les modules dans l'ordre réel de visite
+		// 👉 On se base en priorité sur leur position sur la carte (du bas vers le haut, puis de gauche à droite)
+		// plutôt que sur le champ "ordre" de la base (qui suit souvent l'ordre de création).
 		const sortedModules = [...modules]
 			.filter(m => m.status === 'actif')
-			.sort((a, b) => a.ordre - b.ordre);
+			.sort((a, b) => {
+				const posA = a.position || { x: 50, y: 50 };
+				const posB = b.position || { x: 50, y: 50 };
+
+				// D'abord trier par Y (du bas vers le haut : y le plus grand en premier)
+				if (posA.y !== posB.y) return posB.y - posA.y;
+
+				// Puis par X (de gauche à droite)
+				if (posA.x !== posB.x) return posA.x - posB.x;
+
+				// En dernier recours, garder un ordre stable basé sur "ordre"
+				return a.ordre - b.ordre;
+			});
 
 		let nodeOrdre = 1;
 		

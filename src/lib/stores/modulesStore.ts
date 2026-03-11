@@ -44,7 +44,21 @@ export const filteredModules = derived(
 				}
 				return true;
 			})
-			.sort((a, b) => a.ordre - b.ordre);
+			// Tri dynamique basé sur la position sur la carte (cohérent avec le parcours)
+			// On lit la carte de bas en haut, puis de gauche à droite.
+			.sort((a, b) => {
+				const posA = a.position || { x: 50, y: 50 };
+				const posB = b.position || { x: 50, y: 50 };
+
+				// D'abord trier par Y (du bas vers le haut : y le plus grand en premier)
+				if (posA.y !== posB.y) return posB.y - posA.y;
+
+				// Puis par X (de gauche à droite)
+				if (posA.x !== posB.x) return posA.x - posB.x;
+
+				// En dernier recours, garder un ordre stable basé sur "ordre"
+				return a.ordre - b.ordre;
+			});
 	}
 );
 
@@ -88,7 +102,52 @@ export async function loadModules(): Promise<void> {
 		error.set(fetchError.message);
 		console.error('Error loading modules:', fetchError);
 	} else {
-		modules.set(data || []);
+		const fetched = data || [];
+
+		// Recalculer dynamiquement le champ "ordre" en fonction de la position sur la carte
+		// (lecture de la carte de bas en haut puis de gauche à droite)
+		const sortedByPosition = [...fetched].sort((a, b) => {
+			const posA = a.position || { x: 50, y: 50 };
+			const posB = b.position || { x: 50, y: 50 };
+
+			// Y décroissant (bas -> haut)
+			if (posA.y !== posB.y) return posB.y - posA.y;
+
+			// X croissant (gauche -> droite)
+			if (posA.x !== posB.x) return posA.x - posB.x;
+
+			// Fallback stable sur l'ordre existant
+			return a.ordre - b.ordre;
+		});
+
+		// Préparer les mises à jour pour les modules dont l'ordre change réellement
+		const updates: { id: string; ordre: number }[] = [];
+		sortedByPosition.forEach((mod, index) => {
+			const newOrdre = index + 1;
+			if (mod.ordre !== newOrdre) {
+				mod.ordre = newOrdre;
+				updates.push({ id: mod.id, ordre: newOrdre });
+			}
+		});
+
+		// Sauvegarder en base uniquement si nécessaire
+		if (updates.length > 0 && supabaseClient) {
+			for (const u of updates) {
+				const { error: updateError } = await supabaseClient
+					.from('modules')
+					.update({ ordre: u.ordre })
+					.eq('id', u.id);
+
+				if (updateError) {
+					console.error('Error updating module order:', updateError);
+					// On ne bloque pas le reste du chargement, on sort simplement de la boucle
+					break;
+				}
+			}
+		}
+
+		// Mettre à jour le store avec les ordres recalculés
+		modules.set(sortedByPosition);
 	}
 
 	isLoading.set(false);

@@ -76,13 +76,6 @@
 		</div>
 		<div class="flex items-center gap-3">
 			<a 
-				href="/admin/modules/map"
-				class="flex items-center gap-2 px-4 py-2.5 rounded-xl glass border border-[var(--color-border)] text-[var(--color-text-secondary)] hover:border-[var(--magic-turquoise)] hover:text-[var(--magic-turquoise)] transition-colors text-sm font-medium"
-			>
-				<Map size={18} />
-				Placer sur la carte
-			</a>
-			<a 
 				href="/admin/modules/new"
 				class="flex items-center gap-2 px-4 py-2.5 rounded-xl btn-magic text-white text-sm font-medium"
 			>
@@ -164,14 +157,10 @@
 			{#each $filteredModules as module (module.id)}
 				{@const TypeIcon = typeIcons[module.type]}
 				<div 
-					class="glass rounded-xl p-4 flex items-center gap-4 group hover:border-[var(--magic-turquoise)]/30 transition-colors"
+					class="glass relative overflow-visible rounded-xl p-4 flex items-center gap-4 group hover:border-[var(--magic-turquoise)]/30 transition-colors"
+					class:z-20={contextMenuModule === module.id}
 					class:opacity-50={deletingId === module.id}
 				>
-					<!-- Drag handle -->
-					<button class="cursor-grab text-[var(--color-text-muted)] opacity-0 group-hover:opacity-100 transition-opacity">
-						<GripVertical size={20} />
-					</button>
-
 					<!-- Ordre -->
 					<div class="w-8 h-8 rounded-lg bg-gradient-to-br from-[var(--magic-purple)]/20 to-[var(--magic-magenta)]/20 flex items-center justify-center text-sm font-bold text-[var(--magic-purple)]">
 						{module.ordre}
