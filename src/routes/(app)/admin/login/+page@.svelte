@@ -1,5 +1,5 @@
 <script lang="ts">
-	import '../../../app.css';
+	import '../../../../app.css';
 	import { goto, invalidate } from '$app/navigation';
 	import { Sparkles, Mail, Lock, LogIn, AlertCircle } from 'lucide-svelte';
 

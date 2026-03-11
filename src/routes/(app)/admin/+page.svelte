@@ -1,6 +1,7 @@
 <script lang="ts">
-	import { Layers, Clock, CheckCircle, FileEdit, Archive, TrendingUp, Loader2 } from 'lucide-svelte';
+	import { Layers, Clock, CheckCircle, FileEdit, Archive, TrendingUp, Loader2, Gamepad2 } from 'lucide-svelte';
 	import { moduleStats, modules, filteredModules, isLoading, error } from '$lib/stores/modulesStore';
+	import { miniGameStats, miniGames } from '$lib/stores/miniGamesStore';
 
 	const moduleTypeLabels: Record<string, string> = {
 		video: 'Vidéo',
@@ -46,11 +47,11 @@
 		</div>
 	{:else}
 		<!-- Stats Cards -->
-		<div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+		<div class="grid grid-cols-2 lg:grid-cols-5 gap-4">
 			<div class="glass magic-glow rounded-2xl p-5 group transition-all duration-300 hover:scale-[1.02]">
 				<div class="flex items-center gap-2 mb-2">
 					<Layers size={16} class="text-[var(--magic-purple)]" />
-					<p class="text-xs text-[var(--color-text-muted)] uppercase tracking-wider">Total Modules</p>
+					<p class="text-xs text-[var(--color-text-muted)] uppercase tracking-wider">Modules</p>
 				</div>
 				<p class="text-3xl font-bold bg-gradient-to-r from-[var(--magic-purple)] to-[var(--magic-magenta)] bg-clip-text text-transparent">
 					{$moduleStats.total}
@@ -69,11 +70,21 @@
 
 			<div class="glass rounded-2xl p-5 group transition-all duration-300 hover:scale-[1.02]" style="border-color: rgba(240, 152, 3, 0.2);">
 				<div class="flex items-center gap-2 mb-2">
+					<Gamepad2 size={16} class="text-[var(--magic-orange)]" />
+					<p class="text-xs text-[var(--color-text-muted)] uppercase tracking-wider">Mini-jeux</p>
+				</div>
+				<p class="text-3xl font-bold text-[var(--magic-orange)]">
+					{$miniGameStats.actifs}
+				</p>
+			</div>
+
+			<div class="glass rounded-2xl p-5 group transition-all duration-300 hover:scale-[1.02]" style="border-color: rgba(240, 152, 3, 0.15);">
+				<div class="flex items-center gap-2 mb-2">
 					<FileEdit size={16} class="text-[var(--magic-orange)]" />
 					<p class="text-xs text-[var(--color-text-muted)] uppercase tracking-wider">Brouillons</p>
 				</div>
 				<p class="text-3xl font-bold text-[var(--magic-orange)]">
-					{$moduleStats.brouillons}
+					{$moduleStats.brouillons + $miniGameStats.brouillons}
 				</p>
 			</div>
 
@@ -152,6 +163,14 @@
 					>
 						<Layers size={18} />
 						<span>Nouveau module</span>
+					</a>
+
+					<a 
+						href="/admin/minigames/new"
+						class="flex items-center gap-3 p-4 rounded-xl glass hover:bg-[var(--color-bg-tertiary)] transition-colors text-[var(--color-text-secondary)] border-[var(--magic-orange)]/20"
+					>
+						<Gamepad2 size={18} class="text-[var(--magic-orange)]" />
+						<span>Nouveau mini-jeu</span>
 					</a>
 
 					<a 

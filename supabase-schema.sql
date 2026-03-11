@@ -118,6 +118,145 @@ ON CONFLICT (id) DO UPDATE SET
     position = EXCLUDED.position;
 
 -- =============================================
+-- TABLE MINI-JEUX
+-- =============================================
+
+-- 10. Créer la table mini_games
+CREATE TABLE IF NOT EXISTS public.mini_games (
+    id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+    nom VARCHAR(255) NOT NULL,
+    description TEXT DEFAULT '',
+    type VARCHAR(50) NOT NULL DEFAULT 'quiz_flash' CHECK (type IN ('memory', 'puzzle', 'quiz_flash', 'drag_drop', 'find_difference', 'sequence')),
+    status VARCHAR(50) NOT NULL DEFAULT 'brouillon' CHECK (status IN ('actif', 'brouillon', 'archive')),
+    after_module_id UUID REFERENCES public.modules(id) ON DELETE SET NULL,
+    ordre INTEGER DEFAULT 1,
+    duree_estimee INTEGER DEFAULT 2,
+    contenu JSONB DEFAULT '{}',
+    recompense JSONB DEFAULT '{"points": 10, "message": "Bravo !"}',
+    created_at TIMESTAMPTZ DEFAULT NOW(),
+    updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- 11. Index pour les mini-jeux
+CREATE INDEX IF NOT EXISTS idx_mini_games_status ON public.mini_games(status);
+CREATE INDEX IF NOT EXISTS idx_mini_games_after_module ON public.mini_games(after_module_id);
+
+-- 12. Trigger pour updated_at des mini-jeux
+DROP TRIGGER IF EXISTS update_mini_games_updated_at ON public.mini_games;
+CREATE TRIGGER update_mini_games_updated_at
+    BEFORE UPDATE ON public.mini_games
+    FOR EACH ROW
+    EXECUTE FUNCTION update_updated_at_column();
+
+-- 13. RLS pour mini_games
+ALTER TABLE public.mini_games ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS "Mini games are viewable by everyone" ON public.mini_games;
+CREATE POLICY "Mini games are viewable by everyone"
+    ON public.mini_games
+    FOR SELECT
+    USING (true);
+
+DROP POLICY IF EXISTS "Authenticated users can insert mini games" ON public.mini_games;
+CREATE POLICY "Authenticated users can insert mini games"
+    ON public.mini_games
+    FOR INSERT
+    TO authenticated
+    WITH CHECK (true);
+
+DROP POLICY IF EXISTS "Authenticated users can update mini games" ON public.mini_games;
+CREATE POLICY "Authenticated users can update mini games"
+    ON public.mini_games
+    FOR UPDATE
+    TO authenticated
+    USING (true)
+    WITH CHECK (true);
+
+DROP POLICY IF EXISTS "Authenticated users can delete mini games" ON public.mini_games;
+CREATE POLICY "Authenticated users can delete mini games"
+    ON public.mini_games
+    FOR DELETE
+    TO authenticated
+    USING (true);
+
+-- 14. Mini-jeux de démonstration
+INSERT INTO public.mini_games (nom, description, type, status, after_module_id, ordre, duree_estimee, contenu, recompense)
+VALUES 
+    ('Quiz Express Mirokaï', 
+     'Testez vos connaissances sur Mirokaï !', 
+     'quiz_flash', 'actif', 
+     (SELECT id FROM public.modules WHERE nom LIKE '%Rencontre%' LIMIT 1), 
+     1, 2,
+     '{"questions": [{"question": "Quel est le nom du robot expressif ?", "options": ["Spoon", "Mirokaï", "Nao", "Pepper"], "correctIndex": 1}], "timeLimit": 30}'::jsonb,
+     '{"points": 15, "message": "Excellent ! Tu connais bien Mirokaï !", "badge": "mirokai_fan"}'::jsonb),
+    
+    ('Memory Robots', 
+     'Retrouve les paires de robots !', 
+     'memory', 'brouillon', 
+     (SELECT id FROM public.modules WHERE nom LIKE '%Spoon%' LIMIT 1), 
+     1, 3,
+     '{"pairs": [{"id": "1", "content": "Mirokaï"}, {"id": "2", "content": "Spoon"}], "difficulty": "easy"}'::jsonb,
+     '{"points": 20, "message": "Super mémoire !"}'::jsonb)
+ON CONFLICT DO NOTHING;
+
+-- =============================================
+-- TABLE SETTINGS (Configuration de l'app)
+-- =============================================
+
+-- 15. Créer la table settings
+CREATE TABLE IF NOT EXISTS public.settings (
+    id VARCHAR(50) PRIMARY KEY DEFAULT 'main',
+    journey_background_url TEXT DEFAULT NULL,
+    journey_background_type VARCHAR(20) DEFAULT 'generated' CHECK (journey_background_type IN ('image', 'generated')),
+    updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- 16. Trigger pour updated_at des settings
+DROP TRIGGER IF EXISTS update_settings_updated_at ON public.settings;
+CREATE TRIGGER update_settings_updated_at
+    BEFORE UPDATE ON public.settings
+    FOR EACH ROW
+    EXECUTE FUNCTION update_updated_at_column();
+
+-- 17. RLS pour settings
+ALTER TABLE public.settings ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS "Settings are viewable by everyone" ON public.settings;
+CREATE POLICY "Settings are viewable by everyone"
+    ON public.settings
+    FOR SELECT
+    USING (true);
+
+DROP POLICY IF EXISTS "Authenticated users can update settings" ON public.settings;
+CREATE POLICY "Authenticated users can update settings"
+    ON public.settings
+    FOR UPDATE
+    TO authenticated
+    USING (true)
+    WITH CHECK (true);
+
+DROP POLICY IF EXISTS "Authenticated users can insert settings" ON public.settings;
+CREATE POLICY "Authenticated users can insert settings"
+    ON public.settings
+    FOR INSERT
+    TO authenticated
+    WITH CHECK (true);
+
+-- 18. Insérer les settings par défaut
+INSERT INTO public.settings (id, journey_background_url, journey_background_type)
+VALUES ('main', '/parcours-example.png', 'image')
+ON CONFLICT (id) DO NOTHING;
+
+-- =============================================
+-- STORAGE BUCKET pour les images
+-- =============================================
+-- Note: Exécuter ceci dans la console Supabase ou via l'interface:
+-- 1. Aller dans Storage > Create new bucket
+-- 2. Nom: "journey-backgrounds"
+-- 3. Public bucket: OUI
+-- =============================================
+
+-- =============================================
 -- CONFIGURATION DE L'AUTHENTIFICATION
 -- =============================================
 -- Va dans Authentication > Providers et active "Email"
