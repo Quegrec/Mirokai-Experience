@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="192" height="192" viewBox="0 0 192 192">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#9e63a5"/>
+      <stop offset="100%" style="stop-color:#a3337c"/>
+    </linearGradient>
+    <linearGradient id="sparkle" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#2dd4bf"/>
+      <stop offset="100%" style="stop-color:#ffffff"/>
+    </linearGradient>
+  </defs>
+  <rect width="192" height="192" rx="40" fill="url(#bg)"/>
+  <!-- Sparkle principal -->
+  <path d="M96 40 L102 76 L138 82 L102 88 L96 124 L90 88 L54 82 L90 76 Z" fill="url(#sparkle)"/>
+  <!-- Petites sparkles -->
+  <circle cx="55" cy="130" r="6" fill="#2dd4bf" opacity="0.7"/>
+  <circle cx="137" cy="50" r="4" fill="#ffffff" opacity="0.8"/>
+  <circle cx="145" cy="130" r="5" fill="#2dd4bf" opacity="0.6"/>
+  <!-- Texte Admin -->
+  <text x="96" y="165" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="20" font-weight="700" fill="white" opacity="0.9">ADMIN</text>
+</svg>

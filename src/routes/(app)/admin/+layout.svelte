@@ -6,6 +6,7 @@
 	import { browser } from '$app/environment';
 	import { setSupabaseClient, loadModules } from '$lib/stores/modulesStore';
 	import { setMiniGameSupabaseClient, loadMiniGames } from '$lib/stores/miniGamesStore';
+	import PWAInstall from '$lib/components/PWAInstall.svelte';
 
 	let { children, data } = $props();
 
@@ -51,6 +52,17 @@
 		sidebarOpen = false;
 	}
 </script>
+
+<svelte:head>
+	<link rel="manifest" href="/manifest.json" />
+	<meta name="theme-color" content="#9e63a5" />
+	<meta name="apple-mobile-web-app-capable" content="yes" />
+	<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+	<meta name="apple-mobile-web-app-title" content="Mirokai Admin" />
+	<link rel="apple-touch-icon" href="/icons/icon-192.svg" />
+</svelte:head>
+
+<PWAInstall />
 
 {#if data.user}
 	<div class="admin-layout">
