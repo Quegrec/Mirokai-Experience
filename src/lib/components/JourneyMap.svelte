@@ -83,6 +83,16 @@
 			onNodeClick(node);
 		}
 	}
+
+	function handleBackgroundLoaded() {
+		// Quand l'image est chargée, on scrolle en bas de la page
+		if (typeof window !== 'undefined') {
+			window.scrollTo({
+				top: document.documentElement.scrollHeight,
+				behavior: 'auto'
+			});
+		}
+	}
 </script>
 
 <div class="journey-container" class:has-custom-bg={hasCustomBackground}>
@@ -94,6 +104,7 @@
 				src={backgroundUrl} 
 				alt="Carte du parcours" 
 				class="bg-image"
+				on:load={handleBackgroundLoaded}
 			/>
 		{:else}
 			<div class="bg-gradient"></div>
@@ -132,11 +143,9 @@
 </div>
 
 <style>
-	/* Container - remplit tout l'espace disponible */
+	/* Container - occupe la largeur dispo, la hauteur est définie par la carte (image) */
 	.journey-container {
 		width: 100%;
-		height: 100%;
-		overflow: hidden;
 		position: relative;
 		display: flex;
 		align-items: center;
@@ -147,20 +156,17 @@
 	/* Frame - conteneur pour l'image et les nœuds, ratio 9:16 */
 	.journey-frame {
 		position: relative;
-		width: 100%;
-		height: 100%;
-		/* Limiter selon le ratio 9:16 */
-		max-width: calc(100vh * 9 / 16);
-		max-height: calc(100vw * 16 / 9);
+		width: min(100%, 900px);
+		/* Hauteur auto basée sur l'image, pas de ratio forcé */
+		height: auto;
+		margin: 0 auto;
 	}
 
-	/* Image de fond - remplit le frame entièrement */
+	/* Image de fond - garde son ratio naturel, ajuste la largeur */
 	.bg-image {
-		position: absolute;
-		inset: 0;
+		display: block;
 		width: 100%;
-		height: 100%;
-		object-fit: fill; /* Remplit exactement le frame */
+		height: auto;
 	}
 
 	/* Background généré */
@@ -212,7 +218,7 @@
 		}
 	}
 
-	/* Couche des nœuds - même taille que le frame */
+	/* Couche des nœuds - se cale sur la taille du frame (donc de l'image) */
 	.nodes-layer {
 		position: absolute;
 		inset: 0;

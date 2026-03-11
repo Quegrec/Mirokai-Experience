@@ -454,12 +454,10 @@
 		gap: 1rem;
 	}
 
-	/* Carte - ratio 9:16, IDENTIQUE au JourneyMap visiteur */
+	/* Carte - même comportement visuel que le JourneyMap visiteur */
 	.map-container {
 		position: relative;
-		aspect-ratio: 9 / 16;
-		width: 100%;
-		max-width: 350px;
+		width: min(100%, 900px);
 		border-radius: 1rem;
 		overflow: hidden;
 		cursor: crosshair;
@@ -468,11 +466,9 @@
 	}
 
 	.map-background {
-		position: absolute;
-		inset: 0;
+		display: block;
 		width: 100%;
-		height: 100%;
-		object-fit: fill; /* Identique au visiteur */
+		height: auto; /* garde le ratio naturel de l'image */
 		pointer-events: none;
 		user-select: none;
 	}
@@ -681,9 +677,7 @@
 			gap: 1.5rem;
 		}
 
-		.map-container {
-			max-width: 500px;
-		}
+		/* même largeur max qu'en mode visiteur (déjà géré par min(100%, 900px)) */
 
 		.elements-list {
 			max-height: 70vh;

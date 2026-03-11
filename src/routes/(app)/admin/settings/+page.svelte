@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { Settings, RefreshCw, Download, AlertTriangle, Database, Image, Upload, Trash2, Check, Loader2, Map } from 'lucide-svelte';
+	import { Settings, RefreshCw, Download, AlertTriangle, Database, Image, Upload, Trash2, Check, Loader2, Map, FolderOpen, ImageIcon } from 'lucide-svelte';
 	import { modules, loadModules } from '$lib/stores/modulesStore';
 	import { onMount } from 'svelte';
 	import type { AppSettings } from '$lib/supabase/types';
@@ -17,9 +17,95 @@
 	let previewUrl = $state<string | null>(null);
 	let fileInput: HTMLInputElement;
 
+	// Fichiers du bucket Supabase
+	interface BucketFile {
+		name: string;
+		url: string;
+		created_at: string;
+	}
+	let bucketFiles = $state<BucketFile[]>([]);
+	let isLoadingBucket = $state(false);
+	let bucketError = $state<string | null>(null);
+
 	onMount(async () => {
-		await loadSettings();
+		await Promise.all([loadSettings(), loadBucketFiles()]);
 	});
+
+	// Charger les fichiers du bucket
+	async function loadBucketFiles() {
+		if (!data.supabase) return;
+
+		isLoadingBucket = true;
+		bucketError = null;
+
+		try {
+			const { data: files, error } = await data.supabase.storage
+				.from('journey-backgrounds')
+				.list('', {
+					limit: 100,
+					sortBy: { column: 'created_at', order: 'desc' }
+				});
+
+			if (error) {
+				console.error('Erreur bucket:', error);
+				if (error.message.includes('bucket') || error.message.includes('not found')) {
+					bucketError = 'Bucket "journey-backgrounds" non trouvé. Créez-le dans Supabase Storage.';
+				} else if (error.message.includes('security') || error.message.includes('policy')) {
+					bucketError = 'Erreur RLS: Ajoutez une politique SELECT sur le bucket Storage.';
+				} else {
+					bucketError = error.message;
+				}
+			} else if (files) {
+				// Filtrer les fichiers (exclure les dossiers vides et fichiers système)
+				// Note: id existe seulement pour les fichiers, pas les dossiers
+				bucketFiles = files
+					.filter(f => f.name && !f.name.startsWith('.') && f.id)
+					.map(f => ({
+						name: f.name,
+						url: data.supabase!.storage.from('journey-backgrounds').getPublicUrl(f.name).data.publicUrl,
+						created_at: f.created_at || ''
+					}));
+				
+				console.log('Fichiers trouvés dans le bucket:', bucketFiles.length, files);
+			}
+		} catch (err) {
+			bucketError = 'Erreur lors du chargement des fichiers';
+		}
+
+		isLoadingBucket = false;
+	}
+
+	// Sélectionner un fichier du bucket
+	async function selectBucketFile(file: BucketFile) {
+		await updateBackgroundUrl(file.url);
+	}
+
+	// Supprimer un fichier du bucket
+	async function deleteBucketFile(file: BucketFile) {
+		if (!data.supabase) return;
+		
+		if (!confirm(`Supprimer "${file.name}" du bucket ?`)) return;
+
+		try {
+			const { error } = await data.supabase.storage
+				.from('journey-backgrounds')
+				.remove([file.name]);
+
+			if (error) {
+				saveMessage = { type: 'error', text: `Erreur: ${error.message}` };
+			} else {
+				// Si c'était le fichier actuel, reset le fond
+				if (settings?.journey_background_url === file.url) {
+					await updateBackgroundUrl(null);
+				}
+				// Recharger la liste
+				await loadBucketFiles();
+				saveMessage = { type: 'success', text: 'Fichier supprimé !' };
+			}
+		} catch (err) {
+			saveMessage = { type: 'error', text: 'Erreur lors de la suppression' };
+		}
+	}
 
 	async function loadSettings() {
 		isLoadingSettings = true;
@@ -134,6 +220,9 @@
 
 			// Mettre à jour les settings
 			await updateBackgroundUrl(urlData.publicUrl);
+
+			// Recharger la liste des fichiers du bucket
+			await loadBucketFiles();
 
 		} catch (err) {
 			saveMessage = { type: 'error', text: 'Erreur lors de l\'upload' };
@@ -259,19 +348,93 @@
 						{/if}
 					</div>
 
-					<!-- Fichiers disponibles dans static -->
+					<!-- Fichiers du Bucket Supabase -->
 					<div class="p-4 rounded-xl bg-[var(--color-bg-tertiary)]">
-						<p class="text-xs text-[var(--color-text-muted)] uppercase tracking-wider mb-3">Images disponibles</p>
+						<div class="flex items-center justify-between mb-3">
+							<div class="flex items-center gap-2">
+								<FolderOpen size={14} class="text-[var(--magic-turquoise)]" />
+								<p class="text-xs text-[var(--color-text-muted)] uppercase tracking-wider">Fichiers du bucket Supabase</p>
+							</div>
+							<button 
+								onclick={loadBucketFiles}
+								disabled={isLoadingBucket}
+								class="text-xs text-[var(--magic-turquoise)] hover:underline disabled:opacity-50"
+							>
+								{isLoadingBucket ? 'Chargement...' : 'Actualiser'}
+							</button>
+						</div>
+
+						{#if bucketError}
+							<div class="p-3 rounded-lg bg-red-500/10 border border-red-500/30 text-sm text-red-400">
+								{bucketError}
+							</div>
+						{:else if isLoadingBucket}
+							<div class="flex items-center justify-center py-6">
+								<Loader2 size={20} class="animate-spin text-[var(--magic-turquoise)]" />
+							</div>
+						{:else if bucketFiles.length === 0}
+							<div class="text-center py-6 text-sm text-[var(--color-text-muted)]">
+								<ImageIcon size={32} class="mx-auto mb-2 opacity-50" />
+								<p>Aucune image dans le bucket</p>
+								<p class="text-xs mt-1">Uploadez une image ci-dessous</p>
+							</div>
+						{:else}
+							<div class="grid grid-cols-2 sm:grid-cols-3 gap-3 max-h-[300px] overflow-y-auto pr-1">
+								{#each bucketFiles as file}
+									<div 
+										class="relative group rounded-lg border border-[var(--color-border)] overflow-hidden transition-colors hover:border-[var(--magic-turquoise)] {settings?.journey_background_url === file.url ? 'border-[var(--magic-turquoise)] ring-2 ring-[var(--magic-turquoise)]/50' : ''}"
+									>
+										<button 
+											onclick={() => selectBucketFile(file)}
+											class="w-full text-left"
+										>
+											<div class="aspect-[9/16] max-h-[120px]">
+												<img 
+													src={file.url} 
+													alt={file.name}
+													class="w-full h-full object-cover"
+													loading="lazy"
+												/>
+											</div>
+											<div class="p-2">
+												<p class="text-xs text-[var(--color-text-primary)] truncate">{file.name}</p>
+											</div>
+										</button>
+										
+										<!-- Badge si sélectionné -->
+										{#if settings?.journey_background_url === file.url}
+											<div class="absolute top-1 left-1 p-1 rounded-full bg-[var(--magic-turquoise)] text-white">
+												<Check size={10} />
+											</div>
+										{/if}
+
+										<!-- Bouton supprimer -->
+										<button 
+											onclick={() => deleteBucketFile(file)}
+											class="absolute top-1 right-1 p-1.5 rounded-lg bg-red-500/80 hover:bg-red-500 text-white opacity-0 group-hover:opacity-100 transition-opacity"
+											title="Supprimer du bucket"
+										>
+											<Trash2 size={12} />
+										</button>
+									</div>
+								{/each}
+							</div>
+						{/if}
+					</div>
+
+					<!-- Options rapides -->
+					<div class="p-4 rounded-xl bg-[var(--color-bg-tertiary)]">
+						<p class="text-xs text-[var(--color-text-muted)] uppercase tracking-wider mb-3">Options rapides</p>
 						<div class="grid grid-cols-2 gap-3">
 							<button 
 								onclick={() => useStaticFile('parcours-example.png')}
 								class="p-3 rounded-lg border border-[var(--color-border)] hover:border-[var(--magic-turquoise)] transition-colors text-left group"
 								class:border-[var(--magic-turquoise)]={settings?.journey_background_url === '/parcours-example.png'}
 							>
-								<div class="aspect-[9/16] max-h-[100px] rounded overflow-hidden mb-2">
+								<div class="aspect-[9/16] max-h-[80px] rounded overflow-hidden mb-2">
 									<img src="/parcours-example.png" alt="Parcours exemple" class="w-full h-full object-cover" />
 								</div>
-								<p class="text-xs text-[var(--color-text-primary)] group-hover:text-[var(--magic-turquoise)]">parcours-example.png</p>
+								<p class="text-xs text-[var(--color-text-primary)] group-hover:text-[var(--magic-turquoise)]">Image par défaut</p>
 							</button>
 							
 							<button 
@@ -279,7 +442,7 @@
 								class="p-3 rounded-lg border border-[var(--color-border)] hover:border-[var(--magic-purple)] transition-colors text-left group"
 								class:border-[var(--magic-purple)]={!settings?.journey_background_url}
 							>
-								<div class="aspect-[9/16] max-h-[100px] rounded bg-gradient-to-b from-[var(--magic-turquoise)]/20 via-[var(--magic-purple)]/10 to-[var(--magic-magenta)]/20 flex items-center justify-center mb-2">
+								<div class="aspect-[9/16] max-h-[80px] rounded bg-gradient-to-b from-[var(--magic-turquoise)]/20 via-[var(--magic-purple)]/10 to-[var(--magic-magenta)]/20 flex items-center justify-center mb-2">
 									<span class="text-2xl">✨</span>
 								</div>
 								<p class="text-xs text-[var(--color-text-primary)] group-hover:text-[var(--magic-purple)]">Fond généré</p>

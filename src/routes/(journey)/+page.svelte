@@ -74,6 +74,7 @@
 				}
 			}
 		}
+
 		isLoading = false;
 	});
 
@@ -286,12 +287,14 @@
 	   ======================================== */
 	
 	.journey-page {
-		position: fixed;
-		inset: 0;
+		position: relative;
+		min-height: 100vh;
 		display: flex;
 		flex-direction: column;
 		background: var(--color-bg-primary);
-		overflow: hidden;
+		/* On laisse la page défiler si la carte est plus grande que l'écran */
+		overflow-x: hidden;
+		overflow-y: auto;
 	}
 
 	/* SECTION 1: Header - hauteur fixe */
@@ -456,13 +459,12 @@
 		cursor: pointer;
 	}
 
-	/* Main - Carte plein écran */
-	/* SECTION 2: Map - prend tout l'espace restant */
+	/* SECTION 2: Map - prend tout l'espace restant mais permet le scroll vertical */
 	.journey-main {
 		flex: 1;
 		position: relative;
-		overflow: hidden;
-		min-height: 0; /* Important pour flex */
+		/* On laisse le contenu définir la hauteur et on scrolle la page */
+		overflow: visible;
 	}
 
 	.loading-state {
