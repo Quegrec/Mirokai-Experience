@@ -50,10 +50,10 @@
 			<div class="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-br from-[var(--magic-turquoise)] via-[var(--magic-purple)] to-[var(--magic-magenta)] mb-4 shadow-lg">
 				<Sparkles size={32} class="text-white" />
 			</div>
-			<h1 class="text-2xl font-bold text-[var(--color-text-primary)]">
+			<h1 class="text-2xl font-bold text-(--color-text-primary)">
 				Administration
 			</h1>
-			<p class="text-[var(--color-text-muted)] mt-2">
+			<p class="text-(--color-text-muted) mt-2">
 				Connectez-vous pour gérer les modules
 			</p>
 		</div>
@@ -68,35 +68,35 @@
 			{/if}
 
 			<div>
-				<label for="email" class="text-sm text-[var(--color-text-secondary)] block mb-2">
+				<label for="email" class="text-sm text-(--color-text-secondary) block mb-2">
 					Email
 				</label>
 				<div class="relative">
-					<Mail size={18} class="absolute left-4 top-1/2 -translate-y-1/2 text-[var(--color-text-muted)]" />
+					<Mail size={18} class="absolute left-4 top-1/2 -translate-y-1/2 text-(--color-text-muted)" />
 					<input 
 						type="email"
 						id="email"
 						bind:value={email}
 						placeholder="admin@enchanted.tools"
 						required
-						class="w-full pl-12 pr-4 py-3 rounded-xl bg-[var(--color-bg-tertiary)] border border-[var(--color-border)] text-[var(--color-text-primary)] placeholder:text-[var(--color-text-muted)] focus:outline-none focus:border-[var(--magic-turquoise)] transition-colors"
+						class="w-full pl-12 pr-4 py-3 rounded-xl bg-[var(--color-bg-tertiary)] border border-[var(--color-border)] text-(--color-text-primary) placeholder:text-(--color-text-muted) focus:outline-none focus:border-[var(--magic-turquoise)] transition-colors"
 					/>
 				</div>
 			</div>
 
 			<div>
-				<label for="password" class="text-sm text-[var(--color-text-secondary)] block mb-2">
+				<label for="password" class="text-sm text-(--color-text-secondary) block mb-2">
 					Mot de passe
 				</label>
 				<div class="relative">
-					<Lock size={18} class="absolute left-4 top-1/2 -translate-y-1/2 text-[var(--color-text-muted)]" />
+					<Lock size={18} class="absolute left-4 top-1/2 -translate-y-1/2 text-(--color-text-muted)" />
 					<input 
 						type="password"
 						id="password"
 						bind:value={password}
 						placeholder="••••••••"
 						required
-						class="w-full pl-12 pr-4 py-3 rounded-xl bg-[var(--color-bg-tertiary)] border border-[var(--color-border)] text-[var(--color-text-primary)] placeholder:text-[var(--color-text-muted)] focus:outline-none focus:border-[var(--magic-turquoise)] transition-colors"
+						class="w-full pl-12 pr-4 py-3 rounded-xl bg-[var(--color-bg-tertiary)] border border-[var(--color-border)] text-(--color-text-primary) placeholder:text-(--color-text-muted) focus:outline-none focus:border-[var(--magic-turquoise)] transition-colors"
 					/>
 				</div>
 			</div>
@@ -118,7 +118,7 @@
 
 		<!-- Lien retour -->
 		<p class="text-center mt-6">
-			<a href="/" class="text-sm text-[var(--color-text-muted)] hover:text-[var(--magic-turquoise)] transition-colors">
+			<a href="/" class="text-sm text-(--color-text-muted) hover:text-(--magic-turquoise) transition-colors">
 				← Retour à l'application
 			</a>
 		</p>

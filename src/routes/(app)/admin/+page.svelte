@@ -27,10 +27,10 @@
 <div class="space-y-8">
 	<!-- Header -->
 	<div>
-		<h1 class="text-2xl font-bold text-[var(--color-text-primary)]">
+		<h1 class="text-2xl font-bold text-(--color-text-primary)">
 			Vue d'ensemble
 		</h1>
-		<p class="text-[var(--color-text-muted)] mt-1">
+		<p class="text-(--color-text-muted) mt-1">
 			Gérez les modules de votre expérience visiteur
 		</p>
 	</div>
@@ -43,57 +43,57 @@
 
 	{#if $isLoading}
 		<div class="flex items-center justify-center py-12">
-			<Loader2 size={32} class="animate-spin text-[var(--magic-turquoise)]" />
+			<Loader2 size={32} class="animate-spin text-(--magic-turquoise)" />
 		</div>
 	{:else}
 		<!-- Stats Cards -->
 		<div class="grid grid-cols-2 lg:grid-cols-5 gap-4">
 			<div class="glass magic-glow rounded-2xl p-5 group transition-all duration-300 hover:scale-[1.02]">
 				<div class="flex items-center gap-2 mb-2">
-					<Layers size={16} class="text-[var(--magic-purple)]" />
-					<p class="text-xs text-[var(--color-text-muted)] uppercase tracking-wider">Modules</p>
+					<Layers size={16} class="text-(--magic-purple)" />
+					<p class="text-xs text-(--color-text-muted) uppercase tracking-wider">Modules</p>
 				</div>
 				<p class="text-3xl font-bold bg-gradient-to-r from-[var(--magic-purple)] to-[var(--magic-magenta)] bg-clip-text text-transparent">
 					{$moduleStats.total}
 				</p>
 			</div>
 
-			<div class="glass glass-turquoise rounded-2xl p-5 group transition-all duration-300 hover:scale-[1.02]">
+				<div class="glass glass-turquoise rounded-2xl p-5 group transition-all duration-300 hover:scale-[1.02]">
 				<div class="flex items-center gap-2 mb-2">
-					<CheckCircle size={16} class="text-[var(--magic-turquoise)]" />
-					<p class="text-xs text-[var(--color-text-muted)] uppercase tracking-wider">Actifs</p>
+					<CheckCircle size={16} class="text-(--magic-turquoise)" />
+					<p class="text-xs text-(--color-text-muted) uppercase tracking-wider">Actifs</p>
 				</div>
-				<p class="text-3xl font-bold text-[var(--magic-turquoise)]">
+				<p class="text-3xl font-bold text-(--magic-turquoise)">
 					{$moduleStats.actifs}
 				</p>
 			</div>
 
 			<div class="glass rounded-2xl p-5 group transition-all duration-300 hover:scale-[1.02]" style="border-color: rgba(240, 152, 3, 0.2);">
 				<div class="flex items-center gap-2 mb-2">
-					<Gamepad2 size={16} class="text-[var(--magic-orange)]" />
-					<p class="text-xs text-[var(--color-text-muted)] uppercase tracking-wider">Mini-jeux</p>
+					<Gamepad2 size={16} class="text-(--magic-orange)" />
+					<p class="text-xs text-(--color-text-muted) uppercase tracking-wider">Mini-jeux</p>
 				</div>
-				<p class="text-3xl font-bold text-[var(--magic-orange)]">
+				<p class="text-3xl font-bold text-(--magic-orange)">
 					{$miniGameStats.actifs}
 				</p>
 			</div>
 
 			<div class="glass rounded-2xl p-5 group transition-all duration-300 hover:scale-[1.02]" style="border-color: rgba(240, 152, 3, 0.15);">
 				<div class="flex items-center gap-2 mb-2">
-					<FileEdit size={16} class="text-[var(--magic-orange)]" />
-					<p class="text-xs text-[var(--color-text-muted)] uppercase tracking-wider">Brouillons</p>
+					<FileEdit size={16} class="text-(--magic-orange)" />
+					<p class="text-xs text-(--color-text-muted) uppercase tracking-wider">Brouillons</p>
 				</div>
-				<p class="text-3xl font-bold text-[var(--magic-orange)]">
+				<p class="text-3xl font-bold text-(--magic-orange)">
 					{$moduleStats.brouillons + $miniGameStats.brouillons}
 				</p>
 			</div>
 
 			<div class="glass glass-magenta rounded-2xl p-5 group transition-all duration-300 hover:scale-[1.02]">
 				<div class="flex items-center gap-2 mb-2">
-					<Clock size={16} class="text-[var(--magic-magenta)]" />
-					<p class="text-xs text-[var(--color-text-muted)] uppercase tracking-wider">Durée totale</p>
+					<Clock size={16} class="text-(--magic-magenta)" />
+					<p class="text-xs text-(--color-text-muted) uppercase tracking-wider">Durée totale</p>
 				</div>
-				<p class="text-3xl font-bold text-[var(--magic-magenta)]">
+				<p class="text-3xl font-bold text-(--magic-magenta)">
 					{$moduleStats.dureeTotal}<span class="text-lg ml-1">min</span>
 				</p>
 			</div>
@@ -104,11 +104,11 @@
 			<!-- Modules récents -->
 			<div class="lg:col-span-2 glass rounded-2xl p-6">
 				<div class="flex items-center justify-between mb-4">
-					<h2 class="font-semibold text-[var(--color-text-primary)] flex items-center gap-2">
-						<TrendingUp size={18} class="text-[var(--magic-turquoise)]" />
+					<h2 class="font-semibold text-(--color-text-primary) flex items-center gap-2">
+						<TrendingUp size={18} class="text-(--magic-turquoise)" />
 						Modules récemment modifiés
 					</h2>
-					<a href="/admin/modules" class="text-sm text-[var(--magic-turquoise)] hover:underline">
+					<a href="/admin/modules" class="text-sm text-(--magic-turquoise) hover:underline">
 						Voir tout →
 					</a>
 				</div>
@@ -125,16 +125,16 @@
 									style="background-color: {moduleStatusColors[module.status]}"
 								></div>
 								<div>
-									<p class="font-medium text-[var(--color-text-primary)] group-hover:text-[var(--magic-turquoise)] transition-colors">
+									<p class="font-medium text-(--color-text-primary) group-hover:text-(--magic-turquoise) transition-colors">
 										{module.nom}
 									</p>
-									<p class="text-xs text-[var(--color-text-muted)]">
+									<p class="text-xs text-(--color-text-muted)">
 										{moduleTypeLabels[module.type]} · {module.duree_estimee} min
 									</p>
 								</div>
 							</div>
 							<div class="text-right">
-								<p class="text-xs text-[var(--color-text-muted)]">
+								<p class="text-xs text-(--color-text-muted)">
 									{new Date(module.updated_at).toLocaleDateString('fr-FR', { 
 										day: 'numeric', 
 										month: 'short' 
@@ -143,7 +143,7 @@
 							</div>
 						</a>
 					{:else}
-						<p class="text-center text-[var(--color-text-muted)] py-8">
+						<p class="text-center text-(--color-text-muted) py-8">
 							Aucun module pour le moment
 						</p>
 					{/each}
@@ -152,7 +152,7 @@
 
 			<!-- Actions rapides -->
 			<div class="glass rounded-2xl p-6">
-				<h2 class="font-semibold text-[var(--color-text-primary)] mb-4">
+				<h2 class="font-semibold text-(--color-text-primary) mb-4">
 					Actions rapides
 				</h2>
 
@@ -167,15 +167,15 @@
 
 					<a 
 						href="/admin/minigames/new"
-						class="flex items-center gap-3 p-4 rounded-xl glass hover:bg-[var(--color-bg-tertiary)] transition-colors text-[var(--color-text-secondary)] border-[var(--magic-orange)]/20"
+						class="flex items-center gap-3 p-4 rounded-xl glass hover:bg-[var(--color-bg-tertiary)] transition-colors text-(--color-text-secondary) border-[var(--magic-orange)]/20"
 					>
-						<Gamepad2 size={18} class="text-[var(--magic-orange)]" />
+						<Gamepad2 size={18} class="text-(--magic-orange)" />
 						<span>Nouveau mini-jeu</span>
 					</a>
 
 					<a 
 						href="/admin/modules"
-						class="flex items-center gap-3 p-4 rounded-xl glass hover:bg-[var(--color-bg-tertiary)] transition-colors text-[var(--color-text-secondary)]"
+						class="flex items-center gap-3 p-4 rounded-xl glass hover:bg-[var(--color-bg-tertiary)] transition-colors text-(--color-text-secondary)"
 					>
 						<FileEdit size={18} />
 						<span>Gérer les modules</span>
@@ -183,7 +183,7 @@
 
 					<a 
 						href="/admin/settings"
-						class="flex items-center gap-3 p-4 rounded-xl glass hover:bg-[var(--color-bg-tertiary)] transition-colors text-[var(--color-text-secondary)]"
+						class="flex items-center gap-3 p-4 rounded-xl glass hover:bg-[var(--color-bg-tertiary)] transition-colors text-(--color-text-secondary)"
 					>
 						<Archive size={18} />
 						<span>Paramètres</span>
@@ -192,7 +192,7 @@
 
 				<!-- Parcours visiteur -->
 				<div class="mt-6 pt-6 border-t border-[var(--color-border)]">
-					<h3 class="text-sm font-medium text-[var(--color-text-secondary)] mb-3">
+					<h3 class="text-sm font-medium text-(--color-text-secondary) mb-3">
 						Aperçu du parcours
 					</h3>
 					<div class="space-y-2">
@@ -201,7 +201,7 @@
 								<span class="w-5 h-5 rounded-full bg-gradient-to-br from-[var(--magic-turquoise)] to-[var(--magic-purple)] flex items-center justify-center text-white font-bold">
 									{i + 1}
 								</span>
-								<span class="text-[var(--color-text-muted)] truncate">{module.nom}</span>
+								<span class="text-(--color-text-muted) truncate">{module.nom}</span>
 							</div>
 						{/each}
 					</div>

@@ -72,7 +72,7 @@
 				<Menu size={24} />
 			</button>
 			<div class="mobile-title">
-				<Sparkles size={18} class="text-[var(--magic-turquoise)]" />
+			<Sparkles size={18} class="text-(--magic-turquoise)" />
 				<span>Admin</span>
 			</div>
 			<a href="/" class="back-link">
@@ -94,7 +94,7 @@
 		<!-- Sidebar Admin -->
 		<aside class="sidebar" class:open={sidebarOpen}>
 			<div class="sidebar-header">
-				<a href="/" class="flex items-center gap-2 text-sm text-[var(--color-text-muted)] hover:text-[var(--magic-turquoise)] transition-colors group">
+				<a href="/" class="flex items-center gap-2 text-sm text-(--color-text-muted) hover:text-(--magic-turquoise) transition-colors group">
 					<ArrowLeft size={16} class="group-hover:-translate-x-1 transition-transform" />
 					Retour à l'app
 				</a>
@@ -109,8 +109,8 @@
 						<Sparkles size={20} class="text-white" />
 					</div>
 					<div>
-						<h1 class="font-bold text-[var(--color-text-primary)]">Admin</h1>
-						<p class="text-xs text-[var(--color-text-muted)]">Gestion des modules</p>
+						<h1 class="font-bold text-(--color-text-primary)">Admin</h1>
+						<p class="text-xs text-(--color-text-muted)">Gestion des modules</p>
 					</div>
 				</div>
 				

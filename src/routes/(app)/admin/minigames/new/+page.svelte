@@ -67,14 +67,14 @@
 			href="/admin/minigames" 
 			class="p-2 rounded-lg hover:bg-[var(--color-bg-tertiary)] transition-colors"
 		>
-			<ArrowLeft size={20} class="text-[var(--color-text-muted)]" />
+			<ArrowLeft size={20} class="text-(--color-text-muted)" />
 		</a>
 		<div>
-			<h1 class="text-2xl font-bold text-[var(--color-text-primary)] flex items-center gap-3">
-				<Gamepad2 size={28} class="text-[var(--magic-orange)]" />
+			<h1 class="text-2xl font-bold text-(--color-text-primary) flex items-center gap-3">
+				<Gamepad2 size={28} class="text-(--magic-orange)" />
 				Nouveau mini-jeu
 			</h1>
-			<p class="text-[var(--color-text-muted)] mt-1">
+			<p class="text-(--color-text-muted) mt-1">
 				Créez un mini-jeu à intercaler entre les modules
 			</p>
 		</div>
@@ -89,12 +89,12 @@
 	<form onsubmit={(e) => { e.preventDefault(); handleSubmit(); }} class="space-y-6">
 		<!-- Informations de base -->
 		<div class="glass rounded-xl p-6 space-y-4">
-			<h2 class="text-lg font-semibold text-[var(--color-text-primary)]">
+			<h2 class="text-lg font-semibold text-(--color-text-primary)">
 				Informations générales
 			</h2>
 
 			<div>
-				<label for="nom" class="block text-sm font-medium text-[var(--color-text-secondary)] mb-1.5">
+				<label for="nom" class="block text-sm font-medium text-(--color-text-secondary) mb-1.5">
 					Nom du mini-jeu *
 				</label>
 				<input 
@@ -102,12 +102,12 @@
 					id="nom"
 					bind:value={nom}
 					placeholder="Ex: Quiz Express Mirokaï"
-					class="w-full px-4 py-2.5 bg-[var(--color-bg-tertiary)] border border-[var(--color-border)] rounded-lg text-[var(--color-text-primary)] placeholder:text-[var(--color-text-muted)] focus:outline-none focus:border-[var(--magic-turquoise)]"
+					class="w-full px-4 py-2.5 bg-[var(--color-bg-tertiary)] border border-[var(--color-border)] rounded-lg text-(--color-text-primary) placeholder:text-(--color-text-muted) focus:outline-none focus:border-[var(--magic-turquoise)]"
 				/>
 			</div>
 
 			<div>
-				<label for="description" class="block text-sm font-medium text-[var(--color-text-secondary)] mb-1.5">
+				<label for="description" class="block text-sm font-medium text-(--color-text-secondary) mb-1.5">
 					Description
 				</label>
 				<textarea 
@@ -115,19 +115,19 @@
 					bind:value={description}
 					placeholder="Décrivez brièvement ce mini-jeu..."
 					rows="3"
-					class="w-full px-4 py-2.5 bg-[var(--color-bg-tertiary)] border border-[var(--color-border)] rounded-lg text-[var(--color-text-primary)] placeholder:text-[var(--color-text-muted)] focus:outline-none focus:border-[var(--magic-turquoise)] resize-none"
+					class="w-full px-4 py-2.5 bg-[var(--color-bg-tertiary)] border border-[var(--color-border)] rounded-lg text-(--color-text-primary) placeholder:text-(--color-text-muted) focus:outline-none focus:border-[var(--magic-turquoise)] resize-none"
 				></textarea>
 			</div>
 
 			<div class="grid grid-cols-2 gap-4">
 				<div>
-					<label for="type" class="block text-sm font-medium text-[var(--color-text-secondary)] mb-1.5">
+					<label for="type" class="block text-sm font-medium text-(--color-text-secondary) mb-1.5">
 						Type de jeu
 					</label>
 					<select 
 						id="type"
 						bind:value={type}
-						class="w-full px-4 py-2.5 bg-[var(--color-bg-tertiary)] border border-[var(--color-border)] rounded-lg text-[var(--color-text-primary)] focus:outline-none focus:border-[var(--magic-turquoise)]"
+						class="w-full px-4 py-2.5 bg-[var(--color-bg-tertiary)] border border-[var(--color-border)] rounded-lg text-(--color-text-primary) focus:outline-none focus:border-[var(--magic-turquoise)]"
 					>
 						{#each Object.entries(miniGameTypeLabels) as [value, label]}
 							<option {value}>{label}</option>
@@ -136,13 +136,13 @@
 				</div>
 
 				<div>
-					<label for="status" class="block text-sm font-medium text-[var(--color-text-secondary)] mb-1.5">
+					<label for="status" class="block text-sm font-medium text-(--color-text-secondary) mb-1.5">
 						Statut
 					</label>
 					<select 
 						id="status"
 						bind:value={status}
-						class="w-full px-4 py-2.5 bg-[var(--color-bg-tertiary)] border border-[var(--color-border)] rounded-lg text-[var(--color-text-primary)] focus:outline-none focus:border-[var(--magic-turquoise)]"
+						class="w-full px-4 py-2.5 bg-[var(--color-bg-tertiary)] border border-[var(--color-border)] rounded-lg text-(--color-text-primary) focus:outline-none focus:border-[var(--magic-turquoise)]"
 					>
 						<option value="brouillon">Brouillon</option>
 						<option value="actif">Actif</option>
@@ -152,7 +152,7 @@
 			</div>
 
 			<div>
-				<label for="duree" class="block text-sm font-medium text-[var(--color-text-secondary)] mb-1.5">
+				<label for="duree" class="block text-sm font-medium text-(--color-text-secondary) mb-1.5">
 					Durée estimée (minutes)
 				</label>
 				<input 
@@ -161,25 +161,25 @@
 					bind:value={dureeEstimee}
 					min="1"
 					max="30"
-					class="w-full px-4 py-2.5 bg-[var(--color-bg-tertiary)] border border-[var(--color-border)] rounded-lg text-[var(--color-text-primary)] focus:outline-none focus:border-[var(--magic-turquoise)]"
+					class="w-full px-4 py-2.5 bg-[var(--color-bg-tertiary)] border border-[var(--color-border)] rounded-lg text-(--color-text-primary) focus:outline-none focus:border-[var(--magic-turquoise)]"
 				/>
 			</div>
 		</div>
 
 		<!-- Positionnement dans le parcours -->
 		<div class="glass rounded-xl p-6 space-y-4">
-			<h2 class="text-lg font-semibold text-[var(--color-text-primary)]">
+			<h2 class="text-lg font-semibold text-(--color-text-primary)">
 				Position dans le parcours
 			</h2>
 
 			<div>
-				<label for="afterModule" class="block text-sm font-medium text-[var(--color-text-secondary)] mb-1.5">
+				<label for="afterModule" class="block text-sm font-medium text-(--color-text-secondary) mb-1.5">
 					Après quel module ?
 				</label>
 				<select 
 					id="afterModule"
 					bind:value={afterModuleId}
-					class="w-full px-4 py-2.5 bg-[var(--color-bg-tertiary)] border border-[var(--color-border)] rounded-lg text-[var(--color-text-primary)] focus:outline-none focus:border-[var(--magic-turquoise)]"
+					class="w-full px-4 py-2.5 bg-[var(--color-bg-tertiary)] border border-[var(--color-border)] rounded-lg text-(--color-text-primary) focus:outline-none focus:border-[var(--magic-turquoise)]"
 				>
 					<option value={null}>-- Sélectionner un module --</option>
 					{#each activeModules as module}
@@ -188,7 +188,7 @@
 						</option>
 					{/each}
 				</select>
-				<p class="text-xs text-[var(--color-text-muted)] mt-1">
+				<p class="text-xs text-(--color-text-muted) mt-1">
 					Le mini-jeu apparaîtra juste après ce module dans le parcours
 				</p>
 			</div>
@@ -196,13 +196,13 @@
 
 		<!-- Récompenses -->
 		<div class="glass rounded-xl p-6 space-y-4">
-			<h2 class="text-lg font-semibold text-[var(--color-text-primary)]">
+			<h2 class="text-lg font-semibold text-(--color-text-primary)">
 				Récompense
 			</h2>
 
 			<div class="grid grid-cols-2 gap-4">
 				<div>
-					<label for="points" class="block text-sm font-medium text-[var(--color-text-secondary)] mb-1.5">
+					<label for="points" class="block text-sm font-medium text-(--color-text-secondary) mb-1.5">
 						Points à gagner
 					</label>
 					<input 
@@ -211,12 +211,12 @@
 						bind:value={points}
 						min="0"
 						max="100"
-						class="w-full px-4 py-2.5 bg-[var(--color-bg-tertiary)] border border-[var(--color-border)] rounded-lg text-[var(--color-text-primary)] focus:outline-none focus:border-[var(--magic-turquoise)]"
+						class="w-full px-4 py-2.5 bg-[var(--color-bg-tertiary)] border border-[var(--color-border)] rounded-lg text-(--color-text-primary) focus:outline-none focus:border-[var(--magic-turquoise)]"
 					/>
 				</div>
 
 				<div>
-					<label for="message" class="block text-sm font-medium text-[var(--color-text-secondary)] mb-1.5">
+					<label for="message" class="block text-sm font-medium text-(--color-text-secondary) mb-1.5">
 						Message de succès
 					</label>
 					<input 
@@ -224,7 +224,7 @@
 						id="message"
 						bind:value={message}
 						placeholder="Bravo !"
-						class="w-full px-4 py-2.5 bg-[var(--color-bg-tertiary)] border border-[var(--color-border)] rounded-lg text-[var(--color-text-primary)] placeholder:text-[var(--color-text-muted)] focus:outline-none focus:border-[var(--magic-turquoise)]"
+						class="w-full px-4 py-2.5 bg-[var(--color-bg-tertiary)] border border-[var(--color-border)] rounded-lg text-(--color-text-primary) placeholder:text-(--color-text-muted) focus:outline-none focus:border-[var(--magic-turquoise)]"
 					/>
 				</div>
 			</div>
@@ -234,7 +234,7 @@
 		<div class="flex justify-end gap-3">
 			<a 
 				href="/admin/minigames"
-				class="px-6 py-2.5 rounded-xl text-[var(--color-text-secondary)] hover:bg-[var(--color-bg-tertiary)] transition-colors"
+				class="px-6 py-2.5 rounded-xl text-(--color-text-secondary) hover:bg-[var(--color-bg-tertiary)] transition-colors"
 			>
 				Annuler
 			</a>

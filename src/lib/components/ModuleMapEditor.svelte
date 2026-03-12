@@ -113,13 +113,13 @@
 <div class="editor-container">
 	<!-- Panneau des modules non positionnés -->
 	<div class="modules-panel glass rounded-xl p-4">
-		<h3 class="text-sm font-semibold text-[var(--color-text-primary)] mb-3 flex items-center gap-2">
-			<GripVertical size={16} class="text-[var(--magic-turquoise)]" />
+		<h3 class="text-sm font-semibold text-(--color-text-primary) mb-3 flex items-center gap-2">
+			<GripVertical size={16} class="text-(--magic-turquoise)" />
 			Modules à placer
 		</h3>
 		
 		{#if unpositionedModules.length === 0}
-			<p class="text-xs text-[var(--color-text-muted)] text-center py-4">
+			<p class="text-xs text-(--color-text-muted) text-center py-4">
 				Tous les modules actifs sont placés sur la carte
 			</p>
 		{:else}
@@ -136,10 +136,10 @@
 						<div class="w-6 h-6 rounded-md flex items-center justify-center" style="background: {typeColors[module.type]}20; color: {typeColors[module.type]}">
 							<Icon size={14} />
 						</div>
-						<span class="text-xs text-[var(--color-text-primary)] truncate flex-1">
+						<span class="text-xs text-(--color-text-primary) truncate flex-1">
 							{module.nom}
 						</span>
-						<span class="text-[10px] text-[var(--color-text-muted)]">
+						<span class="text-[10px] text-(--color-text-muted)">
 							{module.ordre}
 						</span>
 					</div>
@@ -148,7 +148,7 @@
 		{/if}
 
 		<div class="mt-4 pt-4 border-t border-[var(--color-border)]">
-			<p class="text-[10px] text-[var(--color-text-muted)]">
+			<p class="text-[10px] text-(--color-text-muted)">
 				💡 Glissez-déposez les modules sur la carte pour les positionner
 			</p>
 		</div>

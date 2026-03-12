@@ -67,10 +67,10 @@
 	<!-- Header -->
 	<div class="flex items-center justify-between">
 		<div>
-			<h1 class="text-2xl font-bold text-[var(--color-text-primary)]">
+			<h1 class="text-2xl font-bold text-(--color-text-primary)">
 				Modules
 			</h1>
-			<p class="text-[var(--color-text-muted)] mt-1">
+			<p class="text-(--color-text-muted) mt-1">
 				{$filteredModules.length} module{$filteredModules.length > 1 ? 's' : ''}
 			</p>
 		</div>
@@ -94,18 +94,18 @@
 	<!-- Barre de recherche et filtres -->
 	<div class="flex flex-col sm:flex-row gap-3">
 		<div class="relative flex-1">
-			<Search size={18} class="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--color-text-muted)]" />
+			<Search size={18} class="absolute left-3 top-1/2 -translate-y-1/2 text-(--color-text-muted)" />
 			<input 
 				type="text"
 				placeholder="Rechercher un module..."
 				bind:value={$searchQuery}
-				class="w-full pl-10 pr-4 py-2.5 rounded-xl glass border border-[var(--color-border)] bg-transparent text-[var(--color-text-primary)] placeholder:text-[var(--color-text-muted)] focus:outline-none focus:border-[var(--magic-turquoise)] transition-colors"
+				class="w-full pl-10 pr-4 py-2.5 rounded-xl glass border border-(--color-border) bg-transparent text-(--color-text-primary) placeholder:text-(--color-text-muted) focus:outline-none focus:border-(--magic-turquoise) transition-colors"
 			/>
 		</div>
 		
 		<button 
 			onclick={() => showFilters = !showFilters}
-			class="flex items-center gap-2 px-4 py-2.5 rounded-xl glass border border-[var(--color-border)] text-[var(--color-text-secondary)] hover:border-[var(--magic-turquoise)] transition-colors"
+			class="flex items-center gap-2 px-4 py-2.5 rounded-xl glass border border-(--color-border) text-(--color-text-secondary) hover:border-(--magic-turquoise) transition-colors"
 		>
 			<Filter size={18} />
 			Filtres
@@ -117,12 +117,12 @@
 	{#if showFilters}
 		<div class="glass rounded-xl p-4 flex flex-wrap gap-4">
 			<div>
-				<label class="text-xs text-[var(--color-text-muted)] uppercase tracking-wider block mb-2">
+				<label class="text-xs text-(--color-text-muted) uppercase tracking-wider block mb-2">
 					Statut
 				</label>
 				<select 
 					bind:value={$statusFilter}
-					class="px-3 py-2 rounded-lg bg-[var(--color-bg-tertiary)] border border-[var(--color-border)] text-[var(--color-text-primary)] text-sm focus:outline-none focus:border-[var(--magic-turquoise)]"
+					class="px-3 py-2 rounded-lg bg-(--color-bg-tertiary) border border-(--color-border) text-(--color-text-primary) text-sm focus:outline-none focus:border-(--magic-turquoise)"
 				>
 					<option value="all">Tous</option>
 					<option value="actif">Actif</option>
@@ -131,12 +131,12 @@
 				</select>
 			</div>
 			<div>
-				<label class="text-xs text-[var(--color-text-muted)] uppercase tracking-wider block mb-2">
+				<label class="text-xs text-(--color-text-muted) uppercase tracking-wider block mb-2">
 					Type
 				</label>
 				<select 
 					bind:value={$typeFilter}
-					class="px-3 py-2 rounded-lg bg-[var(--color-bg-tertiary)] border border-[var(--color-border)] text-[var(--color-text-primary)] text-sm focus:outline-none focus:border-[var(--magic-turquoise)]"
+					class="px-3 py-2 rounded-lg bg-(--color-bg-tertiary) border border-(--color-border) text-(--color-text-primary) text-sm focus:outline-none focus:border-(--magic-turquoise)"
 				>
 					<option value="all">Tous</option>
 					{#each Object.entries(moduleTypeLabels) as [value, label]}
@@ -150,19 +150,19 @@
 	<!-- Liste des modules -->
 	{#if $isLoading}
 		<div class="flex items-center justify-center py-12">
-			<Loader2 size={32} class="animate-spin text-[var(--magic-turquoise)]" />
+			<Loader2 size={32} class="animate-spin text-(--magic-turquoise)" />
 		</div>
 	{:else}
 		<div class="space-y-3">
 			{#each $filteredModules as module (module.id)}
 				{@const TypeIcon = typeIcons[module.type]}
 				<div 
-					class="glass relative overflow-visible rounded-xl p-4 flex items-center gap-4 group hover:border-[var(--magic-turquoise)]/30 transition-colors"
+					class="glass relative overflow-visible rounded-xl p-4 flex items-center gap-4 group hover:border-(--magic-turquoise)/30 transition-colors"
 					class:z-20={contextMenuModule === module.id}
 					class:opacity-50={deletingId === module.id}
 				>
 					<!-- Ordre -->
-					<div class="w-8 h-8 rounded-lg bg-gradient-to-br from-[var(--magic-purple)]/20 to-[var(--magic-magenta)]/20 flex items-center justify-center text-sm font-bold text-[var(--magic-purple)]">
+					<div class="w-8 h-8 rounded-lg bg-linear-to-br from-(--magic-purple)/20 to-(--magic-magenta)/20 flex items-center justify-center text-sm font-bold text-(--magic-purple)">
 						{module.ordre}
 					</div>
 
@@ -178,11 +178,11 @@
 					<div class="flex-1 min-w-0">
 						<a 
 							href="/admin/modules/{module.id}"
-							class="font-medium text-[var(--color-text-primary)] hover:text-[var(--magic-turquoise)] transition-colors"
+							class="font-medium text-(--color-text-primary) hover:text-(--magic-turquoise) transition-colors"
 						>
 							{module.nom}
 						</a>
-						<p class="text-sm text-[var(--color-text-muted)] truncate">
+						<p class="text-sm text-(--color-text-muted) truncate">
 							{module.description}
 						</p>
 					</div>
@@ -195,7 +195,7 @@
 						>
 							{moduleStatusLabels[module.status]}
 						</span>
-						<span class="px-2 py-1 rounded-lg text-xs font-medium bg-[var(--color-bg-tertiary)] text-[var(--color-text-muted)]">
+						<span class="px-2 py-1 rounded-lg text-xs font-medium bg-(--color-bg-tertiary) text-(--color-text-muted)">
 							{module.duree_estimee} min
 						</span>
 					</div>
@@ -204,31 +204,31 @@
 					<div class="relative">
 						<button 
 							onclick={(e) => { e.stopPropagation(); toggleContextMenu(module.id); }}
-							class="p-2 rounded-lg hover:bg-[var(--color-bg-tertiary)] text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)] transition-colors"
+							class="p-2 rounded-lg hover:bg-(--color-bg-tertiary) text-(--color-text-muted) hover:text-(--color-text-primary) transition-colors"
 						>
 							<MoreVertical size={18} />
 						</button>
 
 						{#if contextMenuModule === module.id}
 							<div 
-								class="absolute right-0 top-full mt-1 w-48 glass rounded-xl py-2 z-50 shadow-xl border border-[var(--color-border)]"
+								class="absolute right-0 top-full mt-1 w-48 glass rounded-xl py-2 z-50 shadow-xl border border-(--color-border)"
 								onclick={(e) => e.stopPropagation()}
 							>
 								<a 
 									href="/admin/modules/{module.id}"
-									class="flex items-center gap-2 px-4 py-2 text-sm text-[var(--color-text-secondary)] hover:bg-[var(--color-bg-tertiary)] hover:text-[var(--color-text-primary)]"
+									class="flex items-center gap-2 px-4 py-2 text-sm text-(--color-text-secondary) hover:bg-(--color-bg-tertiary) hover:text-(--color-text-primary)"
 								>
 									<Pencil size={16} />
 									Modifier
 								</a>
 								<button 
 									onclick={() => handleDuplicate(module.id)}
-									class="w-full flex items-center gap-2 px-4 py-2 text-sm text-[var(--color-text-secondary)] hover:bg-[var(--color-bg-tertiary)] hover:text-[var(--color-text-primary)]"
+									class="w-full flex items-center gap-2 px-4 py-2 text-sm text-(--color-text-secondary) hover:bg-(--color-bg-tertiary) hover:text-(--color-text-primary)"
 								>
 									<Copy size={16} />
 									Dupliquer
 								</button>
-								<hr class="my-2 border-[var(--color-border)]" />
+								<hr class="my-2 border-(--color-border)" />
 								<button 
 									onclick={() => handleDelete(module.id)}
 									class="w-full flex items-center gap-2 px-4 py-2 text-sm text-red-400 hover:bg-red-500/10"
@@ -242,7 +242,7 @@
 				</div>
 			{:else}
 				<div class="glass rounded-xl p-12 text-center">
-					<p class="text-[var(--color-text-muted)]">
+					<p class="text-(--color-text-muted)">
 						Aucun module trouvé
 					</p>
 					<a 

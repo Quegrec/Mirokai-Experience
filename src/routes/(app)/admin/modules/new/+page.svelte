@@ -75,17 +75,17 @@
 <div class="max-w-3xl">
 	<!-- Header -->
 	<div class="flex items-center gap-4 mb-8">
-		<a 
+			<a 
 			href="/admin/modules"
-			class="p-2 rounded-xl glass hover:bg-[var(--color-bg-tertiary)] transition-colors text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)]"
+			class="p-2 rounded-xl glass hover:bg-[var(--color-bg-tertiary)] transition-colors text-(--color-text-muted) hover:text-(--color-text-primary)"
 		>
 			<ArrowLeft size={20} />
 		</a>
 		<div>
-			<h1 class="text-2xl font-bold text-[var(--color-text-primary)]">
+			<h1 class="text-2xl font-bold text-(--color-text-primary)">
 				Nouveau module
 			</h1>
-			<p class="text-[var(--color-text-muted)] mt-1">
+			<p class="text-(--color-text-muted) mt-1">
 				Créez une nouvelle section de l'expérience
 			</p>
 		</div>
@@ -101,12 +101,12 @@
 		<!-- Informations principales -->
 		<div class="glass rounded-2xl p-6 space-y-5">
 			<div class="flex items-center gap-2 mb-2">
-				<Sparkles size={18} class="text-[var(--magic-turquoise)]" />
-				<h2 class="font-semibold text-[var(--color-text-primary)]">Informations</h2>
+				<Sparkles size={18} class="text-(--magic-turquoise)" />
+				<h2 class="font-semibold text-(--color-text-primary)">Informations</h2>
 			</div>
 
 			<div>
-				<label for="nom" class="text-sm text-[var(--color-text-secondary)] block mb-2">
+				<label for="nom" class="text-sm text-(--color-text-secondary) block mb-2">
 					Nom du module *
 				</label>
 				<input 
@@ -114,13 +114,13 @@
 					id="nom"
 					bind:value={nom}
 					placeholder="Ex: Introduction à Mirokaï"
-					class="w-full px-4 py-3 rounded-xl bg-[var(--color-bg-tertiary)] border border-[var(--color-border)] text-[var(--color-text-primary)] placeholder:text-[var(--color-text-muted)] focus:outline-none focus:border-[var(--magic-turquoise)] transition-colors"
+					class="w-full px-4 py-3 rounded-xl bg-[var(--color-bg-tertiary)] border border-[var(--color-border)] text-(--color-text-primary) placeholder:text-(--color-text-muted) focus:outline-none focus:border-[var(--magic-turquoise)] transition-colors"
 					required
 				/>
 			</div>
 
 			<div>
-				<label for="description" class="text-sm text-[var(--color-text-secondary)] block mb-2">
+				<label for="description" class="text-sm text-(--color-text-secondary) block mb-2">
 					Description
 				</label>
 				<textarea 
@@ -128,19 +128,19 @@
 					bind:value={description}
 					placeholder="Décrivez le contenu de ce module..."
 					rows="3"
-					class="w-full px-4 py-3 rounded-xl bg-[var(--color-bg-tertiary)] border border-[var(--color-border)] text-[var(--color-text-primary)] placeholder:text-[var(--color-text-muted)] focus:outline-none focus:border-[var(--magic-turquoise)] transition-colors resize-none"
+					class="w-full px-4 py-3 rounded-xl bg-[var(--color-bg-tertiary)] border border-[var(--color-border)] text-(--color-text-primary) placeholder:text-(--color-text-muted) focus:outline-none focus:border-[var(--magic-turquoise)] transition-colors resize-none"
 				></textarea>
 			</div>
 
 			<div class="grid sm:grid-cols-2 gap-4">
 				<div>
-					<label for="type" class="text-sm text-[var(--color-text-secondary)] block mb-2">
+					<label for="type" class="text-sm text-(--color-text-secondary) block mb-2">
 						Type de module
 					</label>
 					<select 
 						id="type"
 						bind:value={type}
-						class="w-full px-4 py-3 rounded-xl bg-[var(--color-bg-tertiary)] border border-[var(--color-border)] text-[var(--color-text-primary)] focus:outline-none focus:border-[var(--magic-turquoise)] transition-colors"
+						class="w-full px-4 py-3 rounded-xl bg-[var(--color-bg-tertiary)] border border-[var(--color-border)] text-(--color-text-primary) focus:outline-none focus:border-[var(--magic-turquoise)] transition-colors"
 					>
 						{#each Object.entries(moduleTypeLabels) as [value, label]}
 							<option {value}>{label}</option>
@@ -149,13 +149,13 @@
 				</div>
 
 				<div>
-					<label for="status" class="text-sm text-[var(--color-text-secondary)] block mb-2">
+					<label for="status" class="text-sm text-(--color-text-secondary) block mb-2">
 						Statut
 					</label>
 					<select 
 						id="status"
 						bind:value={status}
-						class="w-full px-4 py-3 rounded-xl bg-[var(--color-bg-tertiary)] border border-[var(--color-border)] text-[var(--color-text-primary)] focus:outline-none focus:border-[var(--magic-turquoise)] transition-colors"
+						class="w-full px-4 py-3 rounded-xl bg-[var(--color-bg-tertiary)] border border-[var(--color-border)] text-(--color-text-primary) focus:outline-none focus:border-[var(--magic-turquoise)] transition-colors"
 					>
 						<option value="brouillon">Brouillon</option>
 						<option value="actif">Actif</option>
@@ -166,7 +166,7 @@
 
 			<div class="grid sm:grid-cols-2 gap-4">
 				<div>
-					<label for="duree" class="text-sm text-[var(--color-text-secondary)] block mb-2">
+					<label for="duree" class="text-sm text-(--color-text-secondary) block mb-2">
 						Durée estimée (minutes)
 					</label>
 					<input 
@@ -175,18 +175,18 @@
 						bind:value={dureeEstimee}
 						min="1"
 						max="60"
-						class="w-full px-4 py-3 rounded-xl bg-[var(--color-bg-tertiary)] border border-[var(--color-border)] text-[var(--color-text-primary)] focus:outline-none focus:border-[var(--magic-turquoise)] transition-colors"
+						class="w-full px-4 py-3 rounded-xl bg-[var(--color-bg-tertiary)] border border-[var(--color-border)] text-(--color-text-primary) focus:outline-none focus:border-[var(--magic-turquoise)] transition-colors"
 					/>
 				</div>
 
 				<div>
-					<label for="zone" class="text-sm text-[var(--color-text-secondary)] block mb-2">
+					<label for="zone" class="text-sm text-(--color-text-secondary) block mb-2">
 						Zone associée
 					</label>
 					<select 
 						id="zone"
 						bind:value={zoneId}
-						class="w-full px-4 py-3 rounded-xl bg-[var(--color-bg-tertiary)] border border-[var(--color-border)] text-[var(--color-text-primary)] focus:outline-none focus:border-[var(--magic-turquoise)] transition-colors"
+						class="w-full px-4 py-3 rounded-xl bg-[var(--color-bg-tertiary)] border border-[var(--color-border)] text-(--color-text-primary) focus:outline-none focus:border-[var(--magic-turquoise)] transition-colors"
 					>
 						<option value="">Aucune zone</option>
 						{#each zones as zone}
@@ -199,10 +199,10 @@
 
 		<!-- Contenu -->
 		<div class="glass rounded-2xl p-6 space-y-5">
-			<h2 class="font-semibold text-[var(--color-text-primary)]">Contenu</h2>
+			<h2 class="font-semibold text-(--color-text-primary)">Contenu</h2>
 
 			<div>
-				<label for="mediaUrl" class="text-sm text-[var(--color-text-secondary)] block mb-2">
+				<label for="mediaUrl" class="text-sm text-(--color-text-secondary) block mb-2">
 					URL du média (vidéo, image)
 				</label>
 				<input 
@@ -210,12 +210,12 @@
 					id="mediaUrl"
 					bind:value={mediaUrl}
 					placeholder="/videos/intro.mp4"
-					class="w-full px-4 py-3 rounded-xl bg-[var(--color-bg-tertiary)] border border-[var(--color-border)] text-[var(--color-text-primary)] placeholder:text-[var(--color-text-muted)] focus:outline-none focus:border-[var(--magic-turquoise)] transition-colors"
+					class="w-full px-4 py-3 rounded-xl bg-[var(--color-bg-tertiary)] border border-[var(--color-border)] text-(--color-text-primary) placeholder:text-(--color-text-muted) focus:outline-none focus:border-[var(--magic-turquoise)] transition-colors"
 				/>
 			</div>
 
 			<div>
-				<label for="texte" class="text-sm text-[var(--color-text-secondary)] block mb-2">
+				<label for="texte" class="text-sm text-(--color-text-secondary) block mb-2">
 					Texte / Script
 				</label>
 				<textarea 
@@ -223,19 +223,19 @@
 					bind:value={texte}
 					placeholder="Texte à afficher ou script de narration..."
 					rows="4"
-					class="w-full px-4 py-3 rounded-xl bg-[var(--color-bg-tertiary)] border border-[var(--color-border)] text-[var(--color-text-primary)] placeholder:text-[var(--color-text-muted)] focus:outline-none focus:border-[var(--magic-turquoise)] transition-colors resize-none"
+					class="w-full px-4 py-3 rounded-xl bg-[var(--color-bg-tertiary)] border border-[var(--color-border)] text-(--color-text-primary) placeholder:text-(--color-text-muted) focus:outline-none focus:border-[var(--magic-turquoise)] transition-colors resize-none"
 				></textarea>
 			</div>
 
 			<div>
 				<div class="flex items-center justify-between mb-2">
-					<label class="text-sm text-[var(--color-text-secondary)]">
+				<label class="text-sm text-(--color-text-secondary)">
 						Instructions
 					</label>
 					<button 
 						type="button"
 						onclick={addInstruction}
-						class="text-sm text-[var(--magic-turquoise)] hover:underline"
+						class="text-sm text-(--magic-turquoise) hover:underline"
 					>
 						+ Ajouter
 					</button>
@@ -248,7 +248,7 @@
 								value={instruction}
 								oninput={(e) => updateInstruction(i, e.currentTarget.value)}
 								placeholder="Instruction {i + 1}"
-								class="flex-1 px-4 py-2.5 rounded-xl bg-[var(--color-bg-tertiary)] border border-[var(--color-border)] text-[var(--color-text-primary)] placeholder:text-[var(--color-text-muted)] focus:outline-none focus:border-[var(--magic-turquoise)] transition-colors text-sm"
+				class="flex-1 px-4 py-2.5 rounded-xl bg-[var(--color-bg-tertiary)] border border-[var(--color-border)] text-(--color-text-primary) placeholder:text-(--color-text-muted) focus:outline-none focus:border-[var(--magic-turquoise)] transition-colors text-sm"
 							/>
 							{#if instructions.length > 1}
 								<button 
@@ -269,7 +269,7 @@
 		<div class="flex items-center justify-end gap-3">
 			<a 
 				href="/admin/modules"
-				class="px-6 py-3 rounded-xl glass text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] hover:bg-[var(--color-bg-tertiary)] transition-colors"
+				class="px-6 py-3 rounded-xl glass text-(--color-text-secondary) hover:text-(--color-text-primary) hover:bg-[var(--color-bg-tertiary)] transition-colors"
 			>
 				Annuler
 			</a>

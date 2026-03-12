@@ -159,23 +159,23 @@
 
 				<div class="stat-row">
 					<div class="stat-item">
-						<Trophy size={16} class="text-[var(--magic-turquoise)]" />
+						<Trophy size={16} class="text-(--magic-turquoise)" />
 						<span class="stat-value">{activeModulesCount}</span>
 						<span class="stat-label">Modules</span>
 					</div>
 					<div class="stat-item">
-						<Gamepad2 size={16} class="text-[var(--magic-magenta)]" />
+						<Gamepad2 size={16} class="text-(--magic-magenta)" />
 						<span class="stat-value">{activeMiniGamesCount}</span>
 						<span class="stat-label">Mini-jeux</span>
 					</div>
 					<div class="stat-item">
-						<Clock size={16} class="text-[var(--magic-orange)]" />
+						<Clock size={16} class="text-(--magic-orange)" />
 						<span class="stat-value">{totalDuration}</span>
 						<span class="stat-label">min</span>
 					</div>
 				</div>
 				{#if completedNodeIds.length > 0}
-					<button class="reset-btn" onclick={resetProgress}>
+					<button class="reset-btn" onclick={resetProgress}>	
 						Réinitialiser
 					</button>
 				{/if}
@@ -250,7 +250,7 @@
 
 					{#if selectedNode.type === 'minigame' && 'recompense' in nodeData && nodeData.recompense}
 						<div class="modal-reward">
-							<Trophy size={16} class="text-[var(--magic-orange)]" />
+							<Trophy size={16} class="text-(--magic-orange)" />
 							<span>Récompense : {nodeData.recompense.points || 10} points</span>
 						</div>
 					{/if}
@@ -284,6 +284,7 @@
 <style>
 	/* ========================================
 	   LAYOUT 3 SECTIONS: Header / Map / Footer
+	   (styles spécifiques à la page Journey)
 	   ======================================== */
 	
 	.journey-page {
@@ -489,185 +490,9 @@
 	}
 
 	/* ========================================
-	   MODAL - Mobile optimized
+	   MODAL - réglages spécifiques à cette page
+	   (styles de base définis dans app.css)
 	   ======================================== */
-	
-	.modal-overlay {
-		position: fixed;
-		inset: 0;
-		background: rgba(0, 0, 0, 0.8);
-		backdrop-filter: blur(4px);
-		display: flex;
-		align-items: flex-end;
-		z-index: 1000;
-		animation: fadeIn 0.2s ease;
-	}
-
-	@keyframes fadeIn {
-		from { opacity: 0; }
-		to { opacity: 1; }
-	}
-
-	.modal-content {
-		width: 100%;
-		max-height: 85vh;
-		overflow-y: auto;
-		border-radius: 1.5rem 1.5rem 0 0;
-		padding: 1.5rem;
-		padding-bottom: calc(1.5rem + env(safe-area-inset-bottom));
-		position: relative;
-		animation: slideUp 0.3s ease;
-	}
-
-	@keyframes slideUp {
-		from { transform: translateY(100%); }
-		to { transform: translateY(0); }
-	}
-
-	.modal-close {
-		position: absolute;
-		top: 1rem;
-		right: 1rem;
-		background: rgba(255, 255, 255, 0.1);
-		border: none;
-		color: var(--color-text-muted);
-		cursor: pointer;
-		width: 36px;
-		height: 36px;
-		border-radius: 50%;
-		display: flex;
-		align-items: center;
-		justify-content: center;
-	}
-
-	.modal-header {
-		margin-bottom: 1rem;
-		padding-right: 2.5rem;
-	}
-
-	.modal-type-badge {
-		display: inline-flex;
-		align-items: center;
-		gap: 0.375rem;
-		padding: 0.25rem 0.75rem;
-		border-radius: 1rem;
-		font-size: 0.7rem;
-		font-weight: 600;
-		text-transform: uppercase;
-		background: rgba(14, 170, 146, 0.15);
-		color: var(--magic-turquoise);
-		margin-bottom: 0.75rem;
-	}
-
-	.modal-type-badge.is-minigame {
-		background: rgba(240, 152, 3, 0.15);
-		color: var(--magic-orange);
-	}
-
-	.modal-header h2 {
-		font-size: 1.25rem;
-		font-weight: 700;
-		color: var(--color-text-primary);
-		margin: 0 0 0.5rem 0;
-	}
-
-	.modal-duration {
-		display: flex;
-		align-items: center;
-		gap: 0.375rem;
-		color: var(--color-text-muted);
-		font-size: 0.875rem;
-	}
-
-	.modal-body {
-		margin-bottom: 1.5rem;
-	}
-
-	.modal-description {
-		color: var(--color-text-secondary);
-		font-size: 0.9rem;
-		line-height: 1.5;
-		margin: 0 0 1rem 0;
-	}
-
-	.modal-instructions {
-		background: rgba(14, 170, 146, 0.08);
-		border: 1px solid rgba(14, 170, 146, 0.2);
-		border-radius: 1rem;
-		padding: 1rem;
-	}
-
-	.modal-instructions h4 {
-		font-size: 0.8rem;
-		font-weight: 600;
-		color: var(--magic-turquoise);
-		margin: 0 0 0.75rem 0;
-	}
-
-	.modal-instructions ul {
-		margin: 0;
-		padding-left: 1.25rem;
-	}
-
-	.modal-instructions li {
-		font-size: 0.85rem;
-		color: var(--color-text-secondary);
-		margin-bottom: 0.375rem;
-	}
-
-	.modal-reward {
-		display: flex;
-		align-items: center;
-		gap: 0.5rem;
-		margin-top: 1rem;
-		padding: 0.75rem 1rem;
-		background: rgba(240, 152, 3, 0.1);
-		border: 1px solid rgba(240, 152, 3, 0.2);
-		border-radius: 0.75rem;
-		font-size: 0.85rem;
-		color: var(--magic-orange);
-	}
-
-	.modal-actions {
-		display: flex;
-	}
-
-	.btn-primary {
-		flex: 1;
-		display: flex;
-		align-items: center;
-		justify-content: center;
-		gap: 0.5rem;
-		padding: 1rem;
-		background: linear-gradient(135deg, var(--magic-turquoise), var(--magic-magenta));
-		color: white;
-		border: none;
-		border-radius: 1rem;
-		font-weight: 600;
-		font-size: 1rem;
-		cursor: pointer;
-	}
-
-	.btn-secondary {
-		flex: 1;
-		padding: 1rem;
-		background: rgba(14, 170, 146, 0.1);
-		color: var(--magic-turquoise);
-		border: 1px solid var(--magic-turquoise);
-		border-radius: 1rem;
-		font-weight: 600;
-		font-size: 1rem;
-	}
-
-	.btn-locked {
-		flex: 1;
-		padding: 1rem;
-		background: rgba(93, 112, 133, 0.2);
-		color: var(--color-text-muted);
-		border: 1px solid var(--color-border);
-		border-radius: 1rem;
-		font-size: 0.9rem;
-	}
 
 	/* ========================================
 	   DESKTOP - Media queries
@@ -735,3 +560,4 @@
 		}
 	}
 </style>
+

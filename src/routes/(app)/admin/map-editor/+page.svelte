@@ -246,8 +246,8 @@
 			class="mb-4 p-4 rounded-xl flex items-center gap-3 {saveMessage.type === 'success' ? 'bg-[var(--magic-turquoise)]/10 border border-[var(--magic-turquoise)]/30' : 'bg-red-500/10 border border-red-500/30'}"
 		>
 			{#if saveMessage.type === 'success'}
-				<Check size={18} class="text-[var(--magic-turquoise)]" />
-				<span class="text-[var(--magic-turquoise)]">{saveMessage.text}</span>
+				<Check size={18} class="text-(--magic-turquoise)" />
+				<span class="text-(--magic-turquoise)">{saveMessage.text}</span>
 			{:else}
 				<AlertTriangle size={18} class="text-red-400" />
 				<span class="text-red-400">{saveMessage.text}</span>
@@ -257,7 +257,7 @@
 
 	{#if isLoading}
 		<div class="flex items-center justify-center h-[600px]">
-			<Loader2 size={32} class="animate-spin text-[var(--magic-turquoise)]" />
+			<Loader2 size={32} class="animate-spin text-(--magic-turquoise)" />
 		</div>
 	{:else}
 		<div class="editor-content">
@@ -273,8 +273,8 @@
 					/>
 				{:else}
 					<div class="map-placeholder">
-						<p class="text-[var(--color-text-muted)]">Aucune image de fond définie</p>
-						<a href="/admin/settings" class="text-[var(--magic-turquoise)] hover:underline text-sm mt-2">
+						<p class="text-(--color-text-muted)">Aucune image de fond définie</p>
+						<a href="/admin/settings" class="text-(--magic-turquoise) hover:underline text-sm mt-2">
 							→ Configurer dans les paramètres
 						</a>
 					</div>
@@ -332,10 +332,10 @@
 
 			<!-- Liste des éléments -->
 			<div class="elements-list glass">
-				<h3 class="font-semibold text-[var(--color-text-primary)] mb-4">Éléments</h3>
+				<h3 class="font-semibold text-(--color-text-primary) mb-4">Éléments</h3>
 				
 				<div class="space-y-2">
-					<p class="text-xs text-[var(--color-text-muted)] uppercase tracking-wider mb-2">Modules ({modules.length})</p>
+					<p class="text-xs text-(--color-text-muted) uppercase tracking-wider mb-2">Modules ({modules.length})</p>
 					{#each modules as module (module.id)}
 						<div class="element-item" class:modified={modifiedPositions.has(module.id)}>
 							<span class="element-icon">{getModuleIcon(module.type)}</span>
@@ -347,7 +347,7 @@
 
 				{#if miniGames.length > 0}
 					<div class="space-y-2 mt-4">
-						<p class="text-xs text-[var(--color-text-muted)] uppercase tracking-wider mb-2">Mini-jeux ({miniGames.length})</p>
+						<p class="text-xs text-(--color-text-muted) uppercase tracking-wider mb-2">Mini-jeux ({miniGames.length})</p>
 						{#each miniGames as game (game.id)}
 							<div class="element-item minigame" class:modified={modifiedPositions.has(game.id)}>
 								<span class="element-icon">{getMiniGameIcon(game.type)}</span>

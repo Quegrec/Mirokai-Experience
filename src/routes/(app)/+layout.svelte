@@ -26,10 +26,10 @@
 					<div class="absolute -inset-1 rounded-2xl bg-gradient-to-br from-[var(--magic-turquoise)] to-[var(--magic-magenta)] opacity-30 blur-md -z-10"></div>
 				</div>
 				<div>
-					<h1 class="text-lg font-bold text-[var(--color-text-primary)] tracking-tight">
+					<h1 class="text-lg font-bold text-(--color-text-primary) tracking-tight">
 						Enchanted Tools
 					</h1>
-					<p class="text-xs text-[var(--magic-turquoise)]">
+					<p class="text-xs text-(--magic-turquoise)">
 						✦ Centre robotique enchanté
 					</p>
 				</div>
@@ -39,7 +39,7 @@
 				<!-- Lien Admin -->
 				<a 
 					href="/admin"
-					class="flex items-center gap-2 px-3 py-2 rounded-xl glass hover:bg-[var(--color-bg-tertiary)] text-[var(--color-text-muted)] hover:text-[var(--magic-purple)] transition-colors"
+					class="flex items-center gap-2 px-3 py-2 rounded-xl glass hover:bg-[var(--color-bg-tertiary)] text-(--color-text-muted) hover:text-(--magic-purple)] transition-colors"
 				>
 					<Settings size={16} />
 					<span class="text-xs font-medium hidden sm:inline">Admin</span>
@@ -47,7 +47,7 @@
 				<!-- Status magique -->
 				<span class="flex items-center gap-2 px-4 py-2 rounded-full glass-turquoise">
 					<span class="w-2 h-2 rounded-full bg-[var(--magic-turquoise)] glow-pulse shadow-[var(--glow-turquoise)]"></span>
-					<span class="text-xs text-[var(--magic-turquoise)] font-medium">Forêt active</span>
+					<span class="text-xs text-(--magic-turquoise) font-medium">Forêt active</span>
 				</span>
 			</div>
 		</div>
@@ -60,9 +60,9 @@
 
 	<!-- Footer enchanté -->
 	<footer class="relative z-10 border-t border-[var(--color-border)] px-6 py-4">
-		<div class="max-w-7xl mx-auto flex items-center justify-between text-xs text-[var(--color-text-muted)]">
+		<div class="max-w-7xl mx-auto flex items-center justify-between text-xs text-(--color-text-muted)">
 			<span class="flex items-center gap-2">
-				<span class="text-[var(--magic-purple)]">✦</span>
+				<span class="text-(--magic-purple)">✦</span>
 				© 2026 Enchanted Tools
 			</span>
 			<span class="flex items-center gap-2">

@@ -278,10 +278,10 @@
 <div class="max-w-2xl">
 	<!-- Header -->
 	<div class="mb-8">
-		<h1 class="text-2xl font-bold text-[var(--color-text-primary)]">
+		<h1 class="text-2xl font-bold text-(--color-text-primary)">
 			Paramètres
 		</h1>
-		<p class="text-[var(--color-text-muted)] mt-1">
+		<p class="text-(--color-text-muted) mt-1">
 			Configuration de l'administration
 		</p>
 	</div>
@@ -291,8 +291,8 @@
 			class="mb-6 p-4 rounded-xl flex items-center gap-3 {saveMessage.type === 'success' ? 'bg-[var(--magic-turquoise)]/10 border border-[var(--magic-turquoise)]/30' : 'bg-red-500/10 border border-red-500/30'}"
 		>
 			{#if saveMessage.type === 'success'}
-				<Check size={18} class="text-[var(--magic-turquoise)]" />
-				<span class="text-[var(--magic-turquoise)]">{saveMessage.text}</span>
+				<Check size={18} class="text-(--magic-turquoise)" />
+				<span class="text-(--magic-turquoise)">{saveMessage.text}</span>
 			{:else}
 				<AlertTriangle size={18} class="text-red-400" />
 				<span class="text-red-400">{saveMessage.text}</span>
@@ -304,19 +304,19 @@
 		<!-- Image de fond du parcours -->
 		<div class="glass rounded-2xl p-6">
 			<div class="flex items-center gap-2 mb-4">
-				<Map size={18} class="text-[var(--magic-magenta)]" />
-				<h2 class="font-semibold text-[var(--color-text-primary)]">Image de fond du parcours</h2>
+				<Map size={18} class="text-(--magic-magenta)" />
+				<h2 class="font-semibold text-(--color-text-primary)">Image de fond du parcours</h2>
 			</div>
 
 			{#if isLoadingSettings}
 				<div class="flex items-center justify-center py-8">
-					<Loader2 size={24} class="animate-spin text-[var(--magic-turquoise)]" />
+					<Loader2 size={24} class="animate-spin text-(--magic-turquoise)" />
 				</div>
 			{:else}
 				<div class="space-y-4">
 					<!-- Aperçu actuel -->
 					<div class="p-4 rounded-xl bg-[var(--color-bg-tertiary)]">
-						<p class="text-xs text-[var(--color-text-muted)] uppercase tracking-wider mb-3">Aperçu actuel</p>
+						<p class="text-xs text-(--color-text-muted) uppercase tracking-wider mb-3">Aperçu actuel</p>
 						
 						{#if settings?.journey_background_url}
 							<div class="relative aspect-[9/16] max-h-[300px] rounded-lg overflow-hidden border border-[var(--color-border)]">
@@ -333,32 +333,32 @@
 									<Trash2 size={16} />
 								</button>
 							</div>
-							<p class="text-xs text-[var(--color-text-muted)] mt-2 truncate">
+							<p class="text-xs text-(--color-text-muted) mt-2 truncate">
 								{settings.journey_background_url}
 							</p>
 						{:else}
 							<div class="aspect-[9/16] max-h-[200px] rounded-lg bg-gradient-to-b from-[var(--color-bg-secondary)] to-[var(--color-bg-primary)] border border-[var(--color-border)] flex items-center justify-center">
 								<div class="text-center">
 									<div class="w-12 h-12 mx-auto mb-2 rounded-full bg-[var(--magic-turquoise)]/20 flex items-center justify-center">
-										<Image size={24} class="text-[var(--magic-turquoise)]" />
+										<Image size={24} class="text-(--magic-turquoise)" />
 									</div>
-									<p class="text-sm text-[var(--color-text-muted)]">Fond généré automatiquement</p>
+									<p class="text-sm text-(--color-text-muted)">Fond généré automatiquement</p>
 								</div>
 							</div>
 						{/if}
 					</div>
 
 					<!-- Fichiers du Bucket Supabase -->
-					<div class="p-4 rounded-xl bg-[var(--color-bg-tertiary)]">
-						<div class="flex items-center justify-between mb-3">
-							<div class="flex items-center gap-2">
-								<FolderOpen size={14} class="text-[var(--magic-turquoise)]" />
-								<p class="text-xs text-[var(--color-text-muted)] uppercase tracking-wider">Fichiers du bucket Supabase</p>
+						<div class="p-4 rounded-xl bg-[var(--color-bg-tertiary)]">
+							<div class="flex items-center justify-between mb-3">
+								<div class="flex items-center gap-2">
+									<FolderOpen size={14} class="text-(--magic-turquoise)" />
+									<p class="text-xs text-(--color-text-muted) uppercase tracking-wider">Fichiers du bucket Supabase</p>
 							</div>
-							<button 
-								onclick={loadBucketFiles}
-								disabled={isLoadingBucket}
-								class="text-xs text-[var(--magic-turquoise)] hover:underline disabled:opacity-50"
+								<button 
+									onclick={loadBucketFiles}
+									disabled={isLoadingBucket}
+									class="text-xs text-(--magic-turquoise) hover:underline disabled:opacity-50"
 							>
 								{isLoadingBucket ? 'Chargement...' : 'Actualiser'}
 							</button>
@@ -370,10 +370,10 @@
 							</div>
 						{:else if isLoadingBucket}
 							<div class="flex items-center justify-center py-6">
-								<Loader2 size={20} class="animate-spin text-[var(--magic-turquoise)]" />
+								<Loader2 size={20} class="animate-spin text-(--magic-turquoise)" />
 							</div>
 						{:else if bucketFiles.length === 0}
-							<div class="text-center py-6 text-sm text-[var(--color-text-muted)]">
+							<div class="text-center py-6 text-sm text-(--color-text-muted)">
 								<ImageIcon size={32} class="mx-auto mb-2 opacity-50" />
 								<p>Aucune image dans le bucket</p>
 								<p class="text-xs mt-1">Uploadez une image ci-dessous</p>
@@ -397,7 +397,7 @@
 												/>
 											</div>
 											<div class="p-2">
-												<p class="text-xs text-[var(--color-text-primary)] truncate">{file.name}</p>
+												<p class="text-xs text-(--color-text-primary) truncate">{file.name}</p>
 											</div>
 										</button>
 										
@@ -424,7 +424,7 @@
 
 					<!-- Options rapides -->
 					<div class="p-4 rounded-xl bg-[var(--color-bg-tertiary)]">
-						<p class="text-xs text-[var(--color-text-muted)] uppercase tracking-wider mb-3">Options rapides</p>
+						<p class="text-xs text-(--color-text-muted) uppercase tracking-wider mb-3">Options rapides</p>
 						<div class="grid grid-cols-2 gap-3">
 							<button 
 								onclick={() => useStaticFile('parcours-example.png')}
@@ -434,7 +434,7 @@
 								<div class="aspect-[9/16] max-h-[80px] rounded overflow-hidden mb-2">
 									<img src="/parcours-example.png" alt="Parcours exemple" class="w-full h-full object-cover" />
 								</div>
-								<p class="text-xs text-[var(--color-text-primary)] group-hover:text-[var(--magic-turquoise)]">Image par défaut</p>
+								<p class="text-xs text-(--color-text-primary) group-hover:text-(--magic-turquoise)">Image par défaut</p>
 							</button>
 							
 							<button 
@@ -445,14 +445,14 @@
 								<div class="aspect-[9/16] max-h-[80px] rounded bg-gradient-to-b from-[var(--magic-turquoise)]/20 via-[var(--magic-purple)]/10 to-[var(--magic-magenta)]/20 flex items-center justify-center mb-2">
 									<span class="text-2xl">✨</span>
 								</div>
-								<p class="text-xs text-[var(--color-text-primary)] group-hover:text-[var(--magic-purple)]">Fond généré</p>
+								<p class="text-xs text-(--color-text-primary) group-hover:text-(--magic-purple)">Fond généré</p>
 							</button>
 						</div>
 					</div>
 
 					<!-- Upload personnalisé -->
 					<div class="p-4 rounded-xl bg-[var(--color-bg-tertiary)]">
-						<p class="text-xs text-[var(--color-text-muted)] uppercase tracking-wider mb-3">Uploader une image</p>
+						<p class="text-xs text-(--color-text-muted) uppercase tracking-wider mb-3">Uploader une image</p>
 						
 						<input 
 							type="file" 
@@ -485,7 +485,7 @@
 								</button>
 								<button 
 									onclick={() => { previewUrl = null; if(fileInput) fileInput.value = ''; }}
-									class="px-4 py-2.5 rounded-xl glass hover:bg-[var(--color-bg-tertiary)] text-[var(--color-text-muted)]"
+									class="px-4 py-2.5 rounded-xl glass hover:bg-[var(--color-bg-tertiary)] text-(--color-text-muted)"
 								>
 									Annuler
 								</button>
@@ -495,10 +495,10 @@
 								for="bg-upload"
 								class="flex items-center justify-center gap-2 p-4 rounded-xl border-2 border-dashed border-[var(--color-border)] hover:border-[var(--magic-turquoise)] cursor-pointer transition-colors"
 							>
-								<Upload size={20} class="text-[var(--color-text-muted)]" />
-								<span class="text-sm text-[var(--color-text-muted)]">Cliquez pour sélectionner une image</span>
+								<Upload size={20} class="text-(--color-text-muted)" />
+								<span class="text-sm text-(--color-text-muted)">Cliquez pour sélectionner une image</span>
 							</label>
-							<p class="text-xs text-[var(--color-text-muted)] mt-2">
+							<p class="text-xs text-(--color-text-muted) mt-2">
 								Format : PNG, JPG, WebP • Max 5MB • Ratio portrait recommandé (9:16)
 							</p>
 						{/if}
@@ -510,22 +510,22 @@
 		<!-- Base de données -->
 		<div class="glass rounded-2xl p-6">
 			<div class="flex items-center gap-2 mb-4">
-				<Database size={18} class="text-[var(--magic-turquoise)]" />
-				<h2 class="font-semibold text-[var(--color-text-primary)]">Base de données</h2>
+				<Database size={18} class="text-(--magic-turquoise)" />
+				<h2 class="font-semibold text-(--color-text-primary)">Base de données</h2>
 			</div>
 
 			<div class="space-y-4">
 				<div class="flex items-center justify-between p-4 rounded-xl bg-[var(--color-bg-tertiary)]">
 					<div>
-						<p class="text-sm text-[var(--color-text-primary)]">Recharger les modules</p>
-						<p class="text-xs text-[var(--color-text-muted)]">
+						<p class="text-sm text-(--color-text-primary)">Recharger les modules</p>
+						<p class="text-xs text-(--color-text-muted)">
 							Synchroniser avec la base de données Supabase
 						</p>
 					</div>
 					<button 
 						onclick={handleReload}
 						disabled={isReloading}
-						class="flex items-center gap-2 px-4 py-2 rounded-xl glass hover:bg-[var(--color-bg-tertiary)] text-[var(--magic-turquoise)] transition-colors disabled:opacity-50"
+						class="flex items-center gap-2 px-4 py-2 rounded-xl glass hover:bg-[var(--color-bg-tertiary)] text-(--magic-turquoise) transition-colors disabled:opacity-50"
 					>
 						<RefreshCw size={16} class={isReloading ? 'animate-spin' : ''} />
 						{isReloading ? 'Chargement...' : 'Recharger'}
@@ -537,21 +537,21 @@
 		<!-- Export/Import -->
 		<div class="glass rounded-2xl p-6">
 			<div class="flex items-center gap-2 mb-4">
-				<Settings size={18} class="text-[var(--magic-purple)]" />
-				<h2 class="font-semibold text-[var(--color-text-primary)]">Données</h2>
+				<Settings size={18} class="text-(--magic-purple)" />
+				<h2 class="font-semibold text-(--color-text-primary)">Données</h2>
 			</div>
 
 			<div class="space-y-4">
 				<div class="flex items-center justify-between p-4 rounded-xl bg-[var(--color-bg-tertiary)]">
 					<div>
-						<p class="text-sm text-[var(--color-text-primary)]">Exporter les modules</p>
-						<p class="text-xs text-[var(--color-text-muted)]">
+						<p class="text-sm text-(--color-text-primary)">Exporter les modules</p>
+						<p class="text-xs text-(--color-text-muted)">
 							Télécharger tous les modules au format JSON
 						</p>
 					</div>
 					<button 
 						onclick={exportModules}
-						class="flex items-center gap-2 px-4 py-2 rounded-xl glass hover:bg-[var(--color-bg-tertiary)] text-[var(--magic-turquoise)] transition-colors"
+						class="flex items-center gap-2 px-4 py-2 rounded-xl glass hover:bg-[var(--color-bg-tertiary)] text-(--magic-turquoise) transition-colors"
 					>
 						<Download size={16} />
 						Exporter
@@ -563,16 +563,16 @@
 		<!-- Configuration Supabase -->
 		<div class="glass rounded-2xl p-6 border-[var(--magic-orange)]/30">
 			<div class="flex items-center gap-2 mb-4">
-				<AlertTriangle size={18} class="text-[var(--magic-orange)]" />
-				<h2 class="font-semibold text-[var(--color-text-primary)]">Configuration requise</h2>
+				<AlertTriangle size={18} class="text-(--magic-orange)" />
+				<h2 class="font-semibold text-(--color-text-primary)">Configuration requise</h2>
 			</div>
 
-			<div class="space-y-4 text-sm text-[var(--color-text-secondary)]">
+			<div class="space-y-4 text-sm text-(--color-text-secondary)">
 				<p>
 					Pour que l'application fonctionne, vous devez configurer Supabase :
 				</p>
 				<ol class="list-decimal list-inside space-y-2">
-					<li>Créer un projet sur <a href="https://supabase.com" target="_blank" class="text-[var(--magic-turquoise)] hover:underline">supabase.com</a></li>
+					<li>Créer un projet sur <a href="https://supabase.com" target="_blank" class="text-(--magic-turquoise) hover:underline">supabase.com</a></li>
 					<li>Copier l'URL et la clé anonyme depuis les paramètres API</li>
 					<li>Créer un fichier <code class="px-1.5 py-0.5 rounded bg-[var(--color-bg-tertiary)]">.env</code> avec :
 						<pre class="mt-2 p-3 rounded-lg bg-[var(--color-bg-tertiary)] text-xs overflow-x-auto">PUBLIC_SUPABASE_URL=https://xxx.supabase.co
@@ -587,24 +587,24 @@ PUBLIC_SUPABASE_ANON_KEY=eyJ...</pre>
 
 		<!-- Informations -->
 		<div class="glass rounded-2xl p-6">
-			<h2 class="font-semibold text-[var(--color-text-primary)] mb-4">À propos</h2>
+			<h2 class="font-semibold text-(--color-text-primary) mb-4">À propos</h2>
 			
 			<div class="space-y-3 text-sm">
 				<div class="flex justify-between">
-					<span class="text-[var(--color-text-muted)]">Version</span>
-					<span class="text-[var(--color-text-primary)]">1.0.0</span>
+					<span class="text-(--color-text-muted)">Version</span>
+					<span class="text-(--color-text-primary)">1.0.0</span>
 				</div>
 				<div class="flex justify-between">
-					<span class="text-[var(--color-text-muted)]">Framework</span>
-					<span class="text-[var(--color-text-primary)]">SvelteKit 5</span>
+					<span class="text-(--color-text-muted)">Framework</span>
+					<span class="text-(--color-text-primary)">SvelteKit 5</span>
 				</div>
 				<div class="flex justify-between">
-					<span class="text-[var(--color-text-muted)]">Base de données</span>
-					<span class="text-[var(--color-text-primary)]">Supabase (PostgreSQL)</span>
+					<span class="text-(--color-text-muted)">Base de données</span>
+					<span class="text-(--color-text-primary)">Supabase (PostgreSQL)</span>
 				</div>
 				<div class="flex justify-between">
-					<span class="text-[var(--color-text-muted)]">Authentification</span>
-					<span class="text-[var(--color-text-primary)]">Supabase Auth</span>
+					<span class="text-(--color-text-muted)">Authentification</span>
+					<span class="text-(--color-text-primary)">Supabase Auth</span>
 				</div>
 			</div>
 		</div>
