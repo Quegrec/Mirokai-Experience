@@ -2,6 +2,7 @@
 	import { page } from '$app/stores';
 	import { goto } from '$app/navigation';
 	import { modules, updateModule, deleteModule } from '$lib/stores/modulesStore';
+	import { createSupabaseClient } from '$lib/supabase/client';
 	import { zones } from '$lib/data/zones';
 	import type { ModuleType, ModuleStatus } from '$lib/supabase/types';
 	import { ArrowLeft, Save, Trash2, Sparkles, AlertCircle } from 'lucide-svelte';
@@ -44,6 +45,14 @@
 	let hasChanges = $state(false);
 	let errorMsg = $state<string | null>(null);
 
+	// Upload / suppression audioguide via Supabase Storage
+	const supabase = createSupabaseClient();
+	const AUDIO_BUCKET = 'audioguides';
+	let audioFile = $state<File | null>(null);
+	let isUploadingAudio = $state(false);
+	let uploadError = $state<string | null>(null);
+	let audioLang = $state<'FR' | 'EN'>('FR');
+
 	// Initialiser les valeurs quand le module change
 	$effect(() => {
 		if (module) {
@@ -82,6 +91,61 @@
 		markChanged();
 	}
 
+	function handleAudioFileChange(event: Event) {
+		const target = event.currentTarget as HTMLInputElement;
+		audioFile = target.files?.[0] ?? null;
+		uploadError = null;
+		if (audioFile) {
+			markChanged();
+		}
+	}
+
+	async function uploadAudio() {
+		if (!audioFile) return;
+
+		isUploadingAudio = true;
+		uploadError = null;
+
+		const safeName = audioFile.name.replace(/\s+/g, '_');
+		const filePath = `${audioLang.toLowerCase()}/${Date.now()}_${safeName}`;
+
+		const { error: uploadErr } = await supabase.storage
+			.from(AUDIO_BUCKET)
+			.upload(filePath, audioFile, { upsert: false });
+
+		if (uploadErr) {
+			console.error('Erreur upload audioguide', uploadErr);
+			uploadError = 'Erreur lors de l’upload de l’audioguide.';
+			isUploadingAudio = false;
+			return;
+		}
+
+		const { data: publicUrlData } = supabase.storage
+			.from(AUDIO_BUCKET)
+			.getPublicUrl(filePath);
+
+		mediaUrl = publicUrlData.publicUrl;
+		isUploadingAudio = false;
+		markChanged();
+	}
+
+	async function deleteAudioFromSupabase(url: string | null | undefined) {
+		if (!url) return;
+
+		// On ne supprime que si l’URL pointe vers le bucket Supabase "audioguides"
+		const match = url.match(/audioguides\/(.+)$/);
+		if (!match) return;
+
+		const filePath = match[1];
+		const { error: deleteErr } = await supabase.storage
+			.from(AUDIO_BUCKET)
+			.remove([filePath]);
+
+		if (deleteErr) {
+			console.error('Erreur lors de la suppression de l’audioguide', deleteErr);
+		}
+	}
+
 	async function handleSubmit() {
 		if (!nom.trim()) {
 			errorMsg = 'Le nom du module est requis';
@@ -90,6 +154,8 @@
 
 		isSaving = true;
 		errorMsg = null;
+
+		const oldMediaUrl = module?.contenu?.mediaUrl || null;
 
 		const success = await updateModule(getModuleId(), {
 			nom: nom.trim(),
@@ -108,17 +174,28 @@
 		});
 
 		if (success) {
+			// Si l’audioguide a été changé ou supprimé, on supprime l’ancien fichier du bucket
+			if (oldMediaUrl && oldMediaUrl !== (mediaUrl.trim() || undefined)) {
+				await deleteAudioFromSupabase(oldMediaUrl);
+			}
 			hasChanges = false;
 		} else {
 			errorMsg = 'Erreur lors de la sauvegarde';
 		}
-		
+
 		isSaving = false;
 	}
 
 	async function handleDelete() {
 		if (confirm('Êtes-vous sûr de vouloir supprimer ce module ? Cette action est irréversible.')) {
 			isDeleting = true;
+
+			// Supprimer l’audioguide associé s’il est dans le bucket
+			const currentMediaUrl = module?.contenu?.mediaUrl || null;
+			if (currentMediaUrl) {
+				await deleteAudioFromSupabase(currentMediaUrl);
+			}
+
 			const success = await deleteModule(getModuleId());
 			if (success) {
 				goto('/admin/modules');
@@ -289,21 +366,71 @@
 
 			<!-- Contenu -->
 			<div class="glass rounded-2xl p-6 space-y-5">
-			<h2 class="font-semibold text-(--color-text-primary)">Contenu</h2>
+				<h2 class="font-semibold text-(--color-text-primary)">Contenu</h2>
 
-				<div>
-				<label for="mediaUrl" class="text-sm text-(--color-text-secondary) block mb-2">
-						URL du média (vidéo, image)
+				<div class="space-y-3">
+					<label for="mediaUrl" class="text-sm text-(--color-text-secondary) block mb-1">
+						URL de l’audioguide
 					</label>
 					<input 
 						type="text"
 						id="mediaUrl"
 						bind:value={mediaUrl}
 						oninput={markChanged}
-						placeholder="/videos/intro.mp4"
+						placeholder="/Audioguides/FR/1.Naissance d'ET.mp4 ou URL Supabase"
 						class="w-full px-4 py-3 rounded-xl bg-[var(--color-bg-tertiary)] border border-[var(--color-border)] text-(--color-text-primary) placeholder:text-(--color-text-muted) focus:outline-none focus:border-[var(--magic-turquoise)] transition-colors"
 					/>
+
+					<div class="space-y-2">
+						<label class="text-xs text-(--color-text-secondary) block">
+							Ou uploader un fichier vers Supabase Storage (bucket <code>audioguides</code>)
+						</label>
+						<div class="flex flex-col sm:flex-row gap-2 items-start sm:items-center">
+							<input
+								type="file"
+								accept="audio/*,video/mp4"
+								onchange={handleAudioFileChange}
+								class="text-xs text-(--color-text-secondary)"
+							/>
+							<select
+								bind:value={audioLang}
+								class="px-2 py-1 rounded-lg bg-(--color-bg-tertiary) border border-(--color-border) text-xs text-(--color-text-primary)"
+							>
+								<option value="FR">FR</option>
+								<option value="EN">EN</option>
+							</select>
+							<button
+								type="button"
+								onclick={uploadAudio}
+								disabled={isUploadingAudio || !audioFile}
+								class="px-3 py-1.5 rounded-lg btn-magic text-xs text-white disabled:opacity-50"
+							>
+								{isUploadingAudio ? 'Upload...' : 'Uploader'}
+							</button>
+						</div>
+						{#if uploadError}
+							<p class="text-xs text-red-400">{uploadError}</p>
+						{/if}
+						{#if mediaUrl}
+							<p class="text-xs text-(--color-text-muted) break-all">
+								Audioguide actuel : {mediaUrl}
+							</p>
+						{/if}
+					</div>
 				</div>
+
+				{#if mediaUrl}
+					<div class="space-y-2">
+						<p class="text-xs text-(--color-text-secondary)">
+							Aperçu de l’audioguide
+						</p>
+						<audio
+							controls
+							src={mediaUrl}
+							class="w-full"
+						></audio>
+					</div>
+				{/if}
 
 				<div>
 				<label for="texte" class="text-sm text-(--color-text-secondary) block mb-2">

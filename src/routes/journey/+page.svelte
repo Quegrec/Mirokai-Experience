@@ -2,21 +2,25 @@
 	import JourneyMap from '$lib/components/JourneyMap.svelte';
 	import { Sparkles, Trophy, Clock, Gamepad2, ChevronRight, X, Menu } from 'lucide-svelte';
 	import { onMount } from 'svelte';
-	import type { ModuleRow, MiniGameRow, JourneyNode, AppSettings } from '$lib/supabase/types';
+	import type { ModuleRow, MiniGameRow, JourneyNode, AppSettings, ModuleContent } from '$lib/supabase/types';
 
 	let { data } = $props();
 
-	let modules = $state<ModuleRow[]>([]);
-	let miniGames = $state<MiniGameRow[]>([]);
-	let settings = $state<AppSettings | null>(null);
-	let isLoading = $state(true);
-	
-	// Progression (stockée en sessionStorage - persiste pendant la session uniquement)
-	let completedNodeIds = $state<string[]>([]);
-	let currentNodeId = $state<string | null>(null);
+let modules = $state<ModuleRow[]>([]);
+let miniGames = $state<MiniGameRow[]>([]);
+let settings = $state<AppSettings | null>(null);
+let isLoading = $state(true);
+let teamName = $state<string | null>(null);
+let userScore = $state(0);
+
+// Progression (stockée en sessionStorage - persiste pendant la session uniquement)
+let completedNodeIds = $state<string[]>([]);
+let currentNodeId = $state<string | null>(null);
 
 	// Modal pour afficher les détails d'un nœud
 	let selectedNode = $state<JourneyNode | null>(null);
+	// Étape interne de la modale pour les modules (intro / audio / quiz)
+	let nodeModalStep = $state<'intro' | 'audio' | 'quiz'>('intro');
 
 	// Menu stats ouvert/fermé sur mobile
 	let showStats = $state(false);
@@ -24,20 +28,55 @@
 	// URL de fond du parcours
 	const backgroundUrl = $derived(settings?.journey_background_url || null);
 
-	// Statistiques calculées
+	// Mini-jeu quiz associé au module sélectionné (s'il existe)
+	const attachedQuiz = $derived(
+		selectedNode && selectedNode.type === 'module' && selectedNode.data
+			? miniGames.find(
+					(game) =>
+						game.after_module_id === (selectedNode!.data as ModuleRow).id &&
+						game.status === 'actif'
+			  ) ?? null
+			: null
+	);
+
+	// État du quiz dans la modale
+	let quizQuestionIndex = $state(0);
+	let selectedAnswerIndex = $state<number | null>(null);
+	let showQuizCorrection = $state(false);
+
+	const totalQuizQuestions = $derived(
+		attachedQuiz?.contenu?.questions ? attachedQuiz.contenu.questions.length : 0
+	);
+	const currentQuizQuestion = $derived(
+		totalQuizQuestions > 0 && attachedQuiz?.contenu?.questions
+			? attachedQuiz.contenu.questions[quizQuestionIndex]
+			: null
+	);
+
+	const isLastQuizQuestion = $derived(
+		attachedQuiz?.contenu?.questions
+			? quizQuestionIndex === attachedQuiz.contenu.questions.length - 1
+			: false
+	);
+
+	// Statistiques calculées (les mini-jeux ne sont plus comptés comme étapes du parcours)
 	const totalDuration = $derived(
 		modules
 			.filter(m => m.status === 'actif')
-			.reduce((acc, m) => acc + m.duree_estimee, 0) +
-		miniGames
-			.filter(g => g.status === 'actif')
-			.reduce((acc, g) => acc + g.duree_estimee, 0)
+			.reduce((acc, m) => acc + m.duree_estimee, 0)
 	);
 
 	const activeModulesCount = $derived(modules.filter(m => m.status === 'actif').length);
 	const activeMiniGamesCount = $derived(miniGames.filter(g => g.status === 'actif').length);
-	const totalNodes = $derived(activeModulesCount + activeMiniGamesCount);
-	const progressPercent = $derived(totalNodes > 0 ? Math.round((completedNodeIds.length / totalNodes) * 100) : 0);
+
+	// On ne compte que les modules comme nœuds du parcours
+	const completedModuleIds = $derived(
+		completedNodeIds.filter((id) => modules.some((m) => m.id === id))
+	);
+	const totalNodes = $derived(activeModulesCount);
+	const progressPercent = $derived(
+		totalNodes > 0 ? Math.round((completedModuleIds.length / totalNodes) * 100) : 0
+	);
 
 	// Charger les données
 	onMount(async () => {
@@ -69,8 +108,20 @@
 					const progress = JSON.parse(savedProgress);
 					completedNodeIds = progress.completed || [];
 					currentNodeId = progress.current || null;
+					userScore = progress.score ?? 0;
 				} catch (e) {
 					console.error('Error loading progress:', e);
+				}
+			}
+
+			// Charger les infos d'onboarding pour récupérer le nom de l'équipe
+			const savedOnboarding = sessionStorage.getItem('mirokai-onboarding');
+			if (savedOnboarding) {
+				try {
+					const onboarding = JSON.parse(savedOnboarding);
+					teamName = onboarding.teamName || null;
+				} catch (e) {
+					console.error('Error loading onboarding:', e);
 				}
 			}
 		}
@@ -80,10 +131,76 @@
 
 	function handleNodeClick(node: JourneyNode) {
 		selectedNode = node;
+		// Toujours revenir à la première "page" quand on ouvre la modale
+		if (node.type === 'module') {
+			nodeModalStep = 'intro';
+			quizQuestionIndex = 0;
+			selectedAnswerIndex = null;
+			showQuizCorrection = false;
+		}
 	}
 
 	function closeModal() {
 		selectedNode = null;
+		selectedAnswerIndex = null;
+		showQuizCorrection = false;
+	}
+
+	function goToAudioStep() {
+		if (selectedNode?.type === 'module') {
+			nodeModalStep = 'audio';
+		}
+	}
+
+	function backToIntroStep() {
+		if (selectedNode?.type === 'module') {
+			nodeModalStep = 'intro';
+		}
+	}
+
+	function goToQuizStep() {
+		if (selectedNode?.type === 'module' && attachedQuiz && totalQuizQuestions > 0) {
+			// Marquer ce module comme en cours pour que completeCurrentNode fonctionne
+			currentNodeId = selectedNode.id;
+			saveProgress();
+
+			nodeModalStep = 'quiz';
+			quizQuestionIndex = 0;
+			selectedAnswerIndex = null;
+			showQuizCorrection = false;
+		}
+	}
+
+	function handleAnswerSelect(index: number) {
+		if (showQuizCorrection) return;
+		selectedAnswerIndex = index;
+	}
+
+	function handleQuizValidate() {
+		if (!attachedQuiz || !attachedQuiz.contenu?.questions) return;
+		if (!currentQuizQuestion || selectedAnswerIndex === null) return;
+
+		// Première validation : on affiche la bonne réponse
+		if (!showQuizCorrection) {
+			// Incrémenter le score si la réponse est correcte
+			if (selectedAnswerIndex === currentQuizQuestion.correctIndex) {
+				userScore = userScore + 1;
+				saveProgress();
+			}
+
+			showQuizCorrection = true;
+			return;
+		}
+
+		// Deuxième clic : on passe à la question suivante ou on termine la mission
+		if (!isLastQuizQuestion) {
+			quizQuestionIndex = quizQuestionIndex + 1;
+			selectedAnswerIndex = null;
+			showQuizCorrection = false;
+		} else {
+			// Dernière question : on marque le module comme terminé et on revient à la carte
+			completeCurrentNode();
+		}
 	}
 
 	function startNode(node: JourneyNode) {
@@ -106,13 +223,15 @@
 	function saveProgress() {
 		sessionStorage.setItem('mirokai-progress', JSON.stringify({
 			completed: completedNodeIds,
-			current: currentNodeId
+			current: currentNodeId,
+			score: userScore
 		}));
 	}
 
 	function resetProgress() {
 		completedNodeIds = [];
 		currentNodeId = null;
+		userScore = 0;
 		sessionStorage.removeItem('mirokai-progress');
 	}
 </script>
@@ -125,8 +244,19 @@
 </svelte:head>
 
 <div class="journey-page">
-	<!-- SECTION 1: Header -->
-	<header class="journey-header">
+	<!-- SECTION 1: Header (devient le bouton pour ouvrir les stats) -->
+	<header 
+		class="journey-header"
+		role="button"
+		tabindex="0"
+		onclick={() => showStats = !showStats}
+		onkeydown={(e) => {
+			if (e.key === 'Enter' || e.key === ' ') {
+				e.preventDefault();
+				showStats = !showStats;
+			}
+		}}
+	>
 		<div class="header-left">
 			<div class="logo-icon">
 				<Sparkles size={20} />
@@ -134,12 +264,11 @@
 			<div class="header-title">
 				<h1>Mirokaï</h1>
 				<span class="progress-badge">{progressPercent}%</span>
+				{#if teamName}
+					<span class="team-badge">{teamName}</span>
+				{/if}
 			</div>
 		</div>
-
-		<button class="stats-toggle" onclick={() => showStats = !showStats}>
-			<Menu size={20} />
-		</button>
 
 		<!-- Stats panel (dropdown) -->
 		{#if showStats}
@@ -165,8 +294,8 @@
 					</div>
 					<div class="stat-item">
 						<Gamepad2 size={16} class="text-(--magic-magenta)" />
-						<span class="stat-value">{activeMiniGamesCount}</span>
-						<span class="stat-label">Mini-jeux</span>
+						<span class="stat-value">{userScore}</span>
+						<span class="stat-label">Score</span>
 					</div>
 					<div class="stat-item">
 						<Clock size={16} class="text-(--magic-orange)" />
@@ -204,78 +333,263 @@
 
 <!-- Modal de détails du nœud -->
 {#if selectedNode}
-	<div class="modal-overlay" onclick={closeModal} role="dialog" aria-modal="true">
-		<div class="modal-content glass" onclick={(e) => e.stopPropagation()}>
+	<div class="modal-overlay" onclick={closeModal} role="dialog" aria-modal="true" tabindex="-1" onkeydown={(e) => e.key === 'Escape' && closeModal()}>
+		<div class="modal-content glass" role="document" onclick={(e) => e.stopPropagation()}>
 			<button class="modal-close" onclick={closeModal} aria-label="Fermer">
 				<X size={20} />
 			</button>
 
 			{#if selectedNode.data}
 				{@const nodeData = selectedNode.data}
-				<div class="modal-header">
-					<div 
-						class="modal-type-badge"
-						class:is-minigame={selectedNode.type === 'minigame'}
-					>
-						{#if selectedNode.type === 'minigame'}
-							<Gamepad2 size={14} />
-							<span>Mini-jeu</span>
-						{:else}
-							<Sparkles size={14} />
-							<span>Module</span>
+				{@const moduleContent = ('contenu' in nodeData ? (nodeData as ModuleRow).contenu : null) as ModuleContent | null}
+
+				{#if selectedNode.type === 'module'}
+					<!-- Flow spécifique pour les modules : écran 1 (intro) puis écran 2 (audio) -->
+					<div class="module-flow">
+						<div class="module-flow-header">
+							<div class="mission-chip">
+								<span>Mission {nodeData.ordre?.toString().padStart(2, '0') || '01'}</span>
+								<span class="mission-rocket"><img src="/icons/rocket.svg" alt="Rocket" width="16" height="16"></span>
+							</div>
+							<div class="mission-progress-bar">
+								<div class="mission-progress-fill {nodeModalStep === 'audio' ? 'is-after' : ''}"></div>
+							</div>
+						</div>
+
+						{#if nodeModalStep === 'intro'}
+							<section class="module-screen module-screen-intro">
+								<div class="module-hero">
+									<!-- Illustration principale (sans fond nuageux global) -->
+									<div class="module-hero-image"></div>
+								</div>
+
+								<div class="module-content-block">
+									<h2 class="module-title">{nodeData.nom}</h2>
+
+									<div class="module-meta-row">
+										<div class="meta-pill">
+											<Clock size={14} />
+											<span>{nodeData.duree_estimee} min</span>
+										</div>
+									</div>
+
+									<p class="module-description">
+										{nodeData.description}
+									</p>
+								</div>
+
+								<div class="module-footer-actions">
+									<button class="btn-primary large" onclick={goToAudioStep}>
+										Continuer
+										<ChevronRight size={18} />
+									</button>
+								</div>
+							</section>
+						{:else if nodeModalStep === 'audio'}
+							<section class="module-screen module-screen-audio">
+								<div class="module-flow-header-secondary">
+									<button class="back-link" onclick={backToIntroStep}>
+										← Revenir à la mission
+									</button>
+								</div>
+
+								<div class="module-content-block">
+									<h2 class="module-title">
+										Rapproche ton oreille et écoute l'histoire de Miroki…
+									</h2>
+
+									{#if moduleContent?.mediaUrl}
+										<div class="module-audio-player">
+											<audio
+												controls
+												src={moduleContent.mediaUrl}
+												class="audio-player"
+											></audio>
+										</div>
+									{:else}
+										<p class="module-description">
+											(Aucun audio n'est configuré pour ce module pour le moment.)
+										</p>
+									{/if}
+								</div>
+
+								<div class="module-footer-actions">
+									{#if selectedNode.status === 'completed'}
+										<button class="btn-secondary" onclick={closeModal}>
+											Déjà complété ✓
+										</button>
+									{:else if selectedNode.status === 'current'}
+										<button class="btn-primary" onclick={completeCurrentNode}>
+											Marquer comme terminé
+										</button>
+									{:else if selectedNode.status === 'available'}
+										{#if attachedQuiz && totalQuizQuestions > 0}
+											<button class="btn-primary" onclick={goToQuizStep}>
+												Passer au quizz 
+												<ChevronRight size={18} />
+											</button>
+										{:else}
+											<button class="btn-primary" onclick={() => startNode(selectedNode!)}>
+												Démarrer la mission
+												<ChevronRight size={18} />
+											</button>
+										{/if}
+									{:else}
+										<button class="btn-locked" disabled>
+											🔒 Terminez l'étape précédente
+										</button>
+									{/if}
+								</div>
+							</section>
+						{:else if nodeModalStep === 'quiz'}
+							<!-- Écran Quiz avec les questions du mini-jeu associé -->
+							<section class="module-screen module-screen-quiz">
+								<div class="quiz-header">
+									<div class="quiz-mission">
+										<span class="quiz-mission-label">
+											Mission {nodeData.ordre?.toString().padStart(2, '0') || '01'}
+										</span>
+									</div>
+									{#if totalQuizQuestions > 0}
+										<span class="quiz-question-count">
+											Question {quizQuestionIndex + 1}/{totalQuizQuestions}
+										</span>
+									{/if}
+								</div>
+
+								<div class="quiz-hero-circle">
+									<div class="quiz-hero-image"></div>
+								</div>
+
+								{#if currentQuizQuestion}
+									<div class="quiz-question-block">
+										<h2 class="quiz-question-title">
+											{currentQuizQuestion.question}
+										</h2>
+										<p class="quiz-subtitle">
+											Choisis une réponse
+										</p>
+									</div>
+
+									<div class="quiz-options-grid">
+										{#each currentQuizQuestion.options as option, idx}
+											<button
+												type="button"
+												class="quiz-option-card"
+												class:is-selected={selectedAnswerIndex === idx}
+												class:is-correct={showQuizCorrection && idx === currentQuizQuestion.correctIndex}
+												class:is-wrong={showQuizCorrection && selectedAnswerIndex !== null && idx === selectedAnswerIndex && idx !== currentQuizQuestion.correctIndex}
+												disabled={showQuizCorrection}
+												onclick={() => handleAnswerSelect(idx)}
+											>
+												<span>{option}</span>
+											</button>
+										{/each}
+									</div>
+								{:else}
+									<p class="quiz-empty">
+										Aucune question configurée pour ce quizz pour le moment.
+									</p>
+								{/if}
+
+								<div class="quiz-footer-actions">
+									<button
+										type="button"
+										class="quiz-validate-btn"
+										onclick={handleQuizValidate}
+										disabled={!currentQuizQuestion || selectedAnswerIndex === null}
+									>
+										{#if !showQuizCorrection}
+											Valider ma réponse
+										{:else if !isLastQuizQuestion}
+											Question suivante
+										{:else}
+											Terminer la mission
+										{/if}
+										<ChevronRight size={18} />
+									</button>
+								</div>
+							</section>
 						{/if}
 					</div>
-					<h2>{nodeData.nom}</h2>
-					<p class="modal-duration">
-						<Clock size={14} />
-						{nodeData.duree_estimee} min
-					</p>
-				</div>
+				{:else}
+					<!-- Fallback : layout existant pour les mini-jeux et autres types -->
+					<div class="modal-header">
+						<div 
+							class="modal-type-badge"
+							class:is-minigame={selectedNode.type === 'minigame'}
+						>
+							{#if selectedNode.type === 'minigame'}
+								<Gamepad2 size={14} />
+								<span>Mini-jeu</span>
+							{:else}
+								<Sparkles size={14} />
+								<span>Module</span>
+							{/if}
+						</div>
+						<h2>{nodeData.nom}</h2>
+						<p class="modal-duration">
+							<Clock size={14} />
+							{nodeData.duree_estimee} min
+						</p>
+					</div>
 
-				<div class="modal-body">
-					<p class="modal-description">{nodeData.description}</p>
+					<div class="modal-body">
+						<p class="modal-description">{nodeData.description}</p>
 
-					{#if 'contenu' in nodeData && nodeData.contenu}
-						{#if nodeData.contenu.instructions}
-							<div class="modal-instructions">
-								<h4>Ce que vous allez faire :</h4>
-								<ul>
-									{#each nodeData.contenu.instructions as instruction}
-										<li>{instruction}</li>
-									{/each}
-								</ul>
+						{#if moduleContent}
+							{#if moduleContent.mediaUrl}
+								<div class="modal-audio">
+									<h4>Guide audio</h4>
+									<audio
+										controls
+										src={moduleContent.mediaUrl}
+										class="audio-player"
+									></audio>
+								</div>
+							{/if}
+
+							{#if moduleContent.instructions}
+								<div class="modal-instructions">
+									<h4>Ce que vous allez faire :</h4>
+									<ul>
+										{#each moduleContent.instructions as instruction}
+											<li>{instruction}</li>
+										{/each}
+									</ul>
+								</div>
+							{/if}
+						{/if}
+
+						{#if selectedNode.type === 'minigame' && 'recompense' in nodeData && nodeData.recompense}
+							<div class="modal-reward">
+								<Trophy size={16} class="text-(--magic-orange)" />
+								<span>Récompense : {nodeData.recompense.points || 10} points</span>
 							</div>
 						{/if}
-					{/if}
+					</div>
 
-					{#if selectedNode.type === 'minigame' && 'recompense' in nodeData && nodeData.recompense}
-						<div class="modal-reward">
-							<Trophy size={16} class="text-(--magic-orange)" />
-							<span>Récompense : {nodeData.recompense.points || 10} points</span>
-						</div>
-					{/if}
-				</div>
-
-				<div class="modal-actions">
-					{#if selectedNode.status === 'completed'}
-						<button class="btn-secondary" onclick={closeModal}>
-							Déjà complété ✓
-						</button>
-					{:else if selectedNode.status === 'current'}
-						<button class="btn-primary" onclick={completeCurrentNode}>
-							Marquer comme terminé
-						</button>
-					{:else if selectedNode.status === 'available'}
-						<button class="btn-primary" onclick={() => startNode(selectedNode!)}>
-							Commencer
-							<ChevronRight size={18} />
-						</button>
-					{:else}
-						<button class="btn-locked" disabled>
-							🔒 Terminez l'étape précédente
-						</button>
-					{/if}
-				</div>
+					<div class="modal-actions">
+						{#if selectedNode.status === 'completed'}
+							<button class="btn-secondary" onclick={closeModal}>
+								Déjà complété ✓
+							</button>
+						{:else if selectedNode.status === 'current'}
+							<button class="btn-primary" onclick={completeCurrentNode}>
+								Marquer comme terminé
+							</button>
+						{:else if selectedNode.status === 'available'}
+							<button class="btn-primary" onclick={() => startNode(selectedNode!)}>
+								Commencer
+								<ChevronRight size={18} />
+							</button>
+						{:else}
+							<button class="btn-locked" disabled>
+								🔒 Terminez l'étape précédente
+							</button>
+						{/if}
+					</div>
+				{/if}
 			{/if}
 		</div>
 	</div>
@@ -300,16 +614,22 @@
 
 	/* SECTION 1: Header - hauteur fixe */
 	.journey-header {
-		position: relative;
-		flex-shrink: 0;
+		position: fixed;
+		top: 0.75rem;
+		left: 50%;
+		transform: translateX(-50%);
 		z-index: 100;
 		display: flex;
 		justify-content: space-between;
 		align-items: center;
-		padding: 0.5rem 1rem;
+		padding: 0.5rem 0.75rem;
 		padding-top: calc(0.5rem + env(safe-area-inset-top));
-		background: var(--color-bg-primary);
-		border-bottom: 1px solid var(--color-border);
+		background: rgba(15, 23, 42, 0.9);
+		border-radius: 999px;
+		border: 1px solid var(--color-border);
+		box-shadow: 0 8px 24px rgba(0, 0, 0, 0.45);
+		backdrop-filter: blur(12px);
+		max-width: min(540px, 100% - 2rem);
 	}
 
 	.header-left {
@@ -351,6 +671,19 @@
 		font-weight: 600;
 	}
 
+.team-badge {
+	padding: 0.2rem 0.6rem;
+	border-radius: 1rem;
+	background: rgba(255, 255, 255, 0.08);
+	color: var(--color-text-muted);
+	font-size: 0.7rem;
+	font-weight: 500;
+	max-width: 140px;
+	white-space: nowrap;
+	text-overflow: ellipsis;
+	overflow: hidden;
+}
+
 	.stats-toggle {
 		width: 40px;
 		height: 40px;
@@ -366,18 +699,18 @@
 
 	/* Stats panel - dropdown sous le header */
 	.stats-panel {
-		position: absolute;
-		top: 100%;
-		left: 0;
-		right: 0;
-		z-index: 99;
+		position: fixed;
+		top: 4.5rem;
+		left: 50%;
+		transform: translateX(-50%);
+		z-index: 95;
 		padding: 1rem;
 		margin: 0;
-		border-radius: 0 0 1rem 1rem;
+		border-radius: 1rem;
 		animation: slideDown 0.2s ease;
 		background: var(--color-bg-secondary);
 		border: 1px solid var(--color-border);
-		border-top: none;
+		max-width: min(540px, 100% - 2rem);
 	}
 
 	@keyframes slideDown {
@@ -494,13 +827,363 @@
 	   (styles de base définis dans app.css)
 	   ======================================== */
 
+	.modal-audio {
+		margin-top: 1rem;
+		padding: 0.75rem 1rem;
+		border-radius: 0.75rem;
+		background: rgba(15, 23, 42, 0.7);
+		border: 1px solid var(--color-border);
+	}
+
+	.modal-audio h4 {
+		margin: 0 0 0.5rem;
+		font-size: 0.9rem;
+		font-weight: 600;
+		color: var(--color-text-primary);
+	}
+
+	.audio-player {
+		width: 100%;
+	}
+
+	/* ========================================
+	   FLOW MODULE - écrans plein format intro + audio
+	   ======================================== */
+
+	.module-flow {
+		display: flex;
+		flex-direction: column;
+		gap: 0;
+		min-height: 100%;
+	}
+
+	.module-flow-header {
+		display: flex;
+		flex-direction: column;
+		gap: 0.5rem;
+		margin-bottom: 0.75rem;
+	}
+
+	.mission-chip {
+		align-self: flex-start;
+		display: inline-flex;
+		align-items: center;
+		gap: 0.5rem;
+		padding: 0.35rem 0.8rem;
+		border-radius: 999px;
+		background: rgba(129, 140, 248, 0.25);
+		color: #fff;
+		font-size: 0.8rem;
+		font-weight: 600;
+	}
+
+	.mission-rocket {
+		font-size: 0.9rem;
+	}
+
+	.mission-progress-bar {
+		position: relative;
+		width: 100%;
+		height: 4px;
+		border-radius: 999px;
+		background: rgba(148, 163, 184, 0.4);
+		overflow: hidden;
+	}
+
+	.mission-progress-fill {
+		position: absolute;
+		inset: 0;
+		width: 45%;
+		background: linear-gradient(90deg, var(--magic-turquoise), var(--magic-magenta));
+		border-radius: inherit;
+		transition: transform 0.3s ease;
+		transform-origin: left;
+	}
+
+	.mission-progress-fill.is-after {
+		transform: translateX(120%);
+	}
+
+	.module-screen {
+		display: flex;
+		flex-direction: column;
+		flex: 1;
+	}
+
+	.module-hero {
+		border-radius: 1.25rem;
+		overflow: hidden;
+		background: radial-gradient(circle at 20% 10%, rgba(250, 250, 255, 0.18), transparent 55%),
+			radial-gradient(circle at 80% 80%, rgba(251, 191, 36, 0.3), transparent 60%),
+			radial-gradient(circle at 10% 80%, rgba(59, 130, 246, 0.35), transparent 60%),
+			linear-gradient(145deg, #020617, #0f172a 55%, #1e293b 100%);
+		min-height: 160px;
+		display: flex;
+		align-items: stretch;
+		justify-content: stretch;
+		margin-bottom: 1.25rem;
+	}
+
+	.module-hero-image {
+		flex: 1;
+		background-image: url('/frames/Frame 81.png');
+		background-size: cover;
+		background-position: center;
+	}
+	.module-content-block {
+		display: flex;
+		flex-direction: column;
+		gap: 0.75rem;
+		margin-bottom: 1.5rem;
+	}
+
+	.module-title {
+		font-size: 1.2rem;
+		font-weight: 800;
+		color: var(--color-text-primary);
+		margin: 0;
+	}
+
+	.module-subtitle {
+		font-size: 0.9rem;
+		color: var(--color-text-muted);
+		margin: 0;
+	}
+
+	.module-meta-row {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 0.5rem;
+	}
+
+	.meta-pill {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.35rem;
+		padding: 0.25rem 0.7rem;
+		border-radius: 999px;
+		background: rgba(15, 23, 42, 0.85);
+		border: 1px solid rgba(148, 163, 184, 0.35);
+		font-size: 0.75rem;
+		color: var(--color-text-primary);
+	}
+
+	.module-description {
+		font-size: 0.9rem;
+		line-height: 1.4;
+		color: var(--color-text-primary);
+		margin: 0;
+	}
+
+	.module-footer-actions {
+		margin-top: auto;
+		display: flex;
+		justify-content: center;
+	}
+
+	.btn-primary.large {
+		width: 100%;
+		padding: 0.85rem 1.2rem;
+		font-size: 0.95rem;
+		font-weight: 700;
+		border-radius: 999px;
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		gap: 0.4rem;
+	}
+
+	.module-flow-header-secondary {
+		margin-bottom: 0.75rem;
+	}
+
+	.back-link {
+		border: none;
+		background: none;
+		color: var(--color-text-muted);
+		font-size: 0.8rem;
+		cursor: pointer;
+		padding: 0;
+	}
+
+	.module-audio-player {
+		margin-top: 1rem;
+		padding: 0.75rem 0.9rem;
+		border-radius: 1rem;
+		background: rgba(15, 23, 42, 0.8);
+		border: 1px solid rgba(148, 163, 184, 0.4);
+	}
+
+	/* ========================================
+	   QUIZ SCREEN - style proche de la maquette
+	   ======================================== */
+
+	.module-screen-quiz {
+		display: flex;
+		flex-direction: column;
+		gap: 1rem;
+	}
+
+	.quiz-header {
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+		font-size: 0.8rem;
+		color: #e5e7eb;
+		margin-bottom: 0.25rem;
+	}
+
+	.quiz-mission-label {
+		padding: 0.25rem 0.75rem;
+		border-radius: 999px;
+		background: rgba(129, 140, 248, 0.3);
+		display: inline-flex;
+		align-items: center;
+		gap: 0.4rem;
+	}
+
+	.quiz-question-count {
+		font-weight: 500;
+		color: rgba(249, 250, 251, 0.85);
+	}
+
+	.quiz-hero-circle {
+		margin: 0.25rem auto 0.75rem auto;
+		width: 140px;
+		height: 140px;
+		border-radius: 999px;
+		border: 3px solid rgba(244, 244, 245, 0.7);
+		box-shadow: 0 0 20px rgba(56, 189, 248, 0.45);
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		overflow: hidden;
+		background: radial-gradient(circle at 20% 0%, rgba(250, 250, 255, 0.18), transparent 55%),
+			radial-gradient(circle at 80% 80%, rgba(251, 191, 36, 0.3), transparent 60%),
+			linear-gradient(145deg, #020617, #0f172a 55%, #1e293b 100%);
+	}
+
+	.quiz-hero-image {
+		width: 100%;
+		height: 100%;
+		background-image: url('/frames/Frame 81.png');
+		background-size: cover;
+		background-position: center;
+	}
+
+	.quiz-question-block {
+		text-align: left;
+		margin-bottom: 0.75rem;
+	}
+
+	.quiz-question-title {
+		font-size: 1.1rem;
+		font-weight: 800;
+		color: #f9fafb;
+		margin: 0 0 0.35rem 0;
+	}
+
+	.quiz-subtitle {
+		font-size: 0.85rem;
+		color: #e5e7eb;
+		margin: 0;
+	}
+
+	.quiz-options-grid {
+		display: grid;
+		grid-template-columns: repeat(2, minmax(0, 1fr));
+		gap: 0.75rem;
+		margin-bottom: 1.25rem;
+	}
+
+	.quiz-option-card {
+		border: none;
+		cursor: pointer;
+		border-radius: 1.1rem;
+		padding: 0.9rem 0.75rem;
+		background: rgba(15, 23, 42, 0.9);
+		color: #f9fafb;
+		font-weight: 600;
+		font-size: 0.85rem;
+		box-shadow: 0 8px 18px rgba(15, 23, 42, 0.9);
+		border: 1px solid rgba(148, 163, 184, 0.6);
+		text-align: center;
+		transition: transform 0.12s ease, box-shadow 0.12s ease, border-color 0.12s ease,
+			background 0.12s ease;
+	}
+
+	.quiz-option-card span {
+		display: block;
+	}
+
+	.quiz-option-card:hover {
+		transform: translateY(-1px);
+		box-shadow: 0 10px 20px rgba(15, 23, 42, 1);
+		border-color: rgba(56, 189, 248, 0.8);
+	}
+
+	.quiz-option-card.is-selected {
+		background: linear-gradient(135deg, #f97316, #fb923c);
+		color: #111827;
+		border-color: transparent;
+		box-shadow: 0 12px 24px rgba(248, 113, 113, 0.4);
+	}
+
+	.quiz-option-card.is-correct {
+		background: linear-gradient(135deg, #22c55e, #4ade80);
+		color: #052e16;
+		border-color: rgba(34, 197, 94, 0.8);
+		box-shadow: 0 12px 24px rgba(34, 197, 94, 0.5);
+	}
+
+	.quiz-option-card.is-wrong {
+		background: linear-gradient(135deg, #ef4444, #f97373);
+		color: #7f1d1d;
+		border-color: rgba(239, 68, 68, 0.8);
+		box-shadow: 0 12px 24px rgba(239, 68, 68, 0.4);
+	}
+
+	.quiz-empty {
+		font-size: 0.9rem;
+		color: #e5e7eb;
+		text-align: center;
+		margin: 1rem 0;
+	}
+
+	.quiz-footer-actions {
+		margin-top: auto;
+	}
+
+	.quiz-validate-btn {
+		width: 100%;
+		border-radius: 999px;
+		padding: 0.9rem 1.2rem;
+		background: linear-gradient(135deg, #f97316, #fb923c);
+		color: #111827;
+		border: none;
+		font-weight: 700;
+		font-size: 0.9rem;
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		gap: 0.4rem;
+		cursor: pointer;
+		box-shadow: 0 10px 24px rgba(248, 113, 113, 0.45);
+	}
+
+	.quiz-validate-btn:disabled {
+		opacity: 0.5;
+		cursor: default;
+		box-shadow: none;
+	}
+
 	/* ========================================
 	   DESKTOP - Media queries
 	   ======================================== */
 	
 	@media (min-width: 768px) {
 		.journey-header {
-			padding: 1rem 2rem;
+			top: 1.25rem;
 		}
 
 		.logo-icon {
@@ -513,12 +1196,10 @@
 		}
 
 		.stats-panel {
-			position: absolute;
-			top: 1rem;
-			right: 1rem;
-			left: auto;
-			width: auto;
-			min-width: 300px;
+			top: 4.75rem;
+			left: 50%;
+			transform: translateX(-50%);
+			min-width: 320px;
 			padding: 0.75rem 1.5rem;
 		}
 

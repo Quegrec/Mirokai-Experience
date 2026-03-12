@@ -152,19 +152,31 @@
 		{/if}
 
 		<!-- Icône principale -->
-		<div class="node-icon">
-			{#if nodeSize === 'large'}
-				<svelte:component this={nodeIcon} size={24} />
-			{:else if nodeSize === 'medium'}
-				<svelte:component this={nodeIcon} size={20} />
-			{:else}
-				<svelte:component this={nodeIcon} size={16} />
-			{/if}
-		</div>
+		{#if node.type === 'module'}
+			<div class="module-icon-wrapper">
+				<img
+					src={node.status === 'locked' ? '/icons/module_inactive.svg' : '/icons/module_active.svg'}
+					alt={nodeName}
+					class="module-icon-svg"
+					loading="lazy"
+				/>
+				<span class="module-number">{node.ordre}</span>
+			</div>
+		{:else}
+			<div class="node-icon">
+				{#if nodeSize === 'large'}
+					<svelte:component this={nodeIcon} size={24} />
+				{:else if nodeSize === 'medium'}
+					<svelte:component this={nodeIcon} size={20} />
+				{:else}
+					<svelte:component this={nodeIcon} size={16} />
+				{/if}
+			</div>
+		{/if}
 	</div>
 
-	<!-- Numéro d'ordre (pour les modules) -->
-	{#if node.type === 'module' && node.status !== 'locked'}
+	<!-- Numéro d'ordre (pour les autres types) -->
+	{#if node.type !== 'module' && node.status !== 'locked'}
 		<span class="node-order">{node.ordre}</span>
 	{/if}
 
@@ -257,6 +269,40 @@
 			0 4px 12px rgba(0, 0, 0, 0.3),
 			inset 0 2px 4px rgba(255, 255, 255, 0.05);
 		transition: all 0.3s ease;
+	}
+
+	/* Icône module (SVG personnalisé) */
+	.module-icon-wrapper {
+		position: relative;
+		width: 100%;
+		height: 100%;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+	}
+
+	.module-icon-svg {
+		display: block;
+		width: 100%;
+		height: 100%;
+		object-fit: contain;
+	}
+
+	.module-number {
+		position: absolute;
+		inset: 0;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		font-weight: 800;
+		font-size: 0.80rem;
+		color: #ffffff;
+		text-shadow:
+			0 0 6px rgba(0, 0, 0, 0.7),
+			0 2px 4px rgba(0, 0, 0, 0.8);
+		pointer-events: none;
+		/* Légère compensation pour le volume 3D du SVG */
+		transform: translateY(-4px);
 	}
 
 	/* États */

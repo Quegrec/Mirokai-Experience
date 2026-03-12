@@ -52,6 +52,11 @@ export const miniGameTypeIcons: Record<MiniGameType, string> = {
 	sequence: 'ListOrdered'
 };
 
+// Helpers
+export function getMiniGameById(id: string): MiniGameRow | undefined {
+	return get(miniGames).find((g) => g.id === id);
+}
+
 // === FONCTIONS SUPABASE ===
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any

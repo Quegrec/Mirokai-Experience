@@ -217,9 +217,12 @@
 						<!-- Infos -->
 						<div class="flex-1 min-w-0">
 							<div class="flex items-center gap-2 mb-1">
-								<h3 class="font-semibold text-(--color-text-primary) truncate group-hover:text-(--magic-turquoise) transition-colors">
+								<a 
+									href="/admin/minigames/{game.id}"
+									class="font-semibold text-(--color-text-primary) truncate group-hover:text-(--magic-turquoise) transition-colors"
+								>
 									{game.nom}
-								</h3>
+								</a>
 								<span 
 									class="px-2 py-0.5 rounded-full text-xs font-medium"
 									style="background: {statusColors[game.status]}20; color: {statusColors[game.status]}"

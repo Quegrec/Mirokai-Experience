@@ -164,9 +164,11 @@ export async function addModule(moduleData: ModuleInsert): Promise<ModuleRow | n
 	const currentModules = get(modules);
 	const maxOrdre = currentModules.reduce((max, m) => Math.max(max, m.ordre), 0);
 
-	const insertData = {
+	const insertData: ModuleInsert = {
 		...moduleData,
-		ordre: moduleData.ordre ?? maxOrdre + 1
+		ordre: moduleData.ordre ?? maxOrdre + 1,
+		// Par défaut, placer le module en haut de la carte pour ne pas perturber l'ordre existant
+		position: moduleData.position ?? { x: 10, y: 5 }
 	};
 
 	const { data, error: insertError } = await supabaseClient
@@ -217,6 +219,18 @@ export async function deleteModule(id: string): Promise<boolean> {
 	if (!supabaseClient) return false;
 
 	error.set(null);
+
+	// Supprimer d'abord les mini-jeux associés à ce module
+	const { error: miniGamesError } = await supabaseClient
+		.from('mini_games')
+		.delete()
+		.eq('after_module_id', id);
+
+	if (miniGamesError) {
+		error.set(miniGamesError.message);
+		console.error('Error deleting related mini-games:', miniGamesError);
+		return false;
+	}
 
 	const { error: deleteError } = await supabaseClient
 		.from('modules')

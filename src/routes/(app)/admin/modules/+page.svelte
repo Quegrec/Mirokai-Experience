@@ -185,6 +185,14 @@
 						<p class="text-sm text-(--color-text-muted) truncate">
 							{module.description}
 						</p>
+						{#if module.contenu?.mediaUrl}
+							<div class="mt-1 flex items-center gap-2">
+								<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-(--color-bg-tertiary) text-xs text-(--color-text-secondary)">
+									<Play size={12} />
+									Audioguide
+								</span>
+							</div>
+						{/if}
 					</div>
 
 					<!-- Badges -->

@@ -3,7 +3,7 @@
 	import { ArrowLeft, Gamepad2, Save, Loader2 } from 'lucide-svelte';
 	import { addMiniGame, miniGameTypeLabels } from '$lib/stores/miniGamesStore';
 	import { modules } from '$lib/stores/modulesStore';
-	import type { MiniGameType, ModuleStatus, MiniGameInsert } from '$lib/supabase/types';
+import type { MiniGameType, ModuleStatus, MiniGameInsert } from '$lib/supabase/types';
 
 	let isSaving = $state(false);
 	let error = $state<string | null>(null);
@@ -16,7 +16,7 @@
 	let afterModuleId = $state<string | null>(null);
 	let dureeEstimee = $state(2);
 	let points = $state(10);
-	let message = $state('Bravo !');
+let message = $state('Bravo !');
 
 	// Modules actifs pour le sélecteur
 	const activeModules = $derived(

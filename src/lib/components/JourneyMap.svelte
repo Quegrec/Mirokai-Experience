@@ -48,6 +48,7 @@
 
 		let nodeOrdre = 1;
 		
+		// On ne place que les modules sur la carte : les mini-jeux sont intégrés dans la modale
 		sortedModules.forEach((module) => {
 			const moduleStatus = getNodeStatus(module.id, nodeOrdre);
 			nodes.push({
@@ -59,24 +60,6 @@
 				position: module.position || { x: 50, y: 50 }
 			});
 			nodeOrdre++;
-
-			// Chercher les mini-jeux après ce module
-			const gamesAfter = miniGames
-				.filter(g => g.after_module_id === module.id && g.status === 'actif')
-				.sort((a, b) => a.ordre - b.ordre);
-
-			gamesAfter.forEach(game => {
-				const gameStatus = getNodeStatus(game.id, nodeOrdre);
-				nodes.push({
-					id: game.id,
-					type: 'minigame' as JourneyNodeType,
-					data: game,
-					ordre: nodeOrdre,
-					status: gameStatus,
-					position: game.position || { x: 50, y: 50 }
-				});
-				nodeOrdre++;
-			});
 		});
 
 		return nodes;

@@ -221,9 +221,9 @@
 <style>
 	.editor-container {
 		display: grid;
-		grid-template-columns: 220px 1fr;
+		grid-template-columns: 220px minmax(0, 1fr);
 		gap: 1rem;
-		height: 500px;
+		align-items: flex-start;
 	}
 
 	.modules-panel {
@@ -248,6 +248,8 @@
 	.map-area {
 		position: relative;
 		background: var(--color-bg-tertiary);
+		aspect-ratio: 9 / 16;
+		max-height: 480px;
 	}
 
 	.module-marker {
@@ -365,8 +367,7 @@
 	@media (max-width: 768px) {
 		.editor-container {
 			grid-template-columns: 1fr;
-			grid-template-rows: auto 400px;
-			height: auto;
+			grid-template-rows: auto auto;
 		}
 
 		.modules-panel {
