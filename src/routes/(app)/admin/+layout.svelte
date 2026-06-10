@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { Settings, LayoutGrid, Layers, ArrowLeft, Sparkles, LogOut, User, Gamepad2, Map, Menu, X } from 'lucide-svelte';
+	import { Settings, LayoutGrid, Layers, ArrowLeft, Sparkles, LogOut, Gamepad2, Map, Menu, X } from 'lucide-svelte';
 	import { page } from '$app/stores';
 	import { goto } from '$app/navigation';
 	import { onMount } from 'svelte';
@@ -66,24 +66,16 @@
 
 {#if data.user}
 	<div class="admin-layout">
-		<!-- Mobile Header -->
-		<header class="mobile-header">
-			<button class="menu-toggle" onclick={toggleSidebar}>
-				<Menu size={24} />
-			</button>
-			<div class="mobile-title">
-			<Sparkles size={18} class="text-(--magic-turquoise)" />
-				<span>Admin</span>
-			</div>
-			<a href="/" class="back-link">
-				<ArrowLeft size={20} />
-			</a>
-		</header>
+
+		<!-- FAB mobile : ouvre la sidebar -->
+		<button class="mobile-fab" onclick={toggleSidebar} aria-label="Menu">
+			<Menu size={22} />
+		</button>
 
 		<!-- Overlay pour fermer le menu -->
 		{#if sidebarOpen}
-			<div 
-				class="sidebar-overlay" 
+			<div
+				class="sidebar-overlay"
 				onclick={closeSidebar}
 				role="button"
 				tabindex="-1"
@@ -93,64 +85,46 @@
 
 		<!-- Sidebar Admin -->
 		<aside class="sidebar" class:open={sidebarOpen}>
-			<div class="sidebar-header">
-				<a href="/" class="flex items-center gap-2 text-sm text-(--color-text-muted) hover:text-(--magic-turquoise) transition-colors group">
-					<ArrowLeft size={16} class="group-hover:-translate-x-1 transition-transform" />
-					Retour à l'app
-				</a>
-				<button class="close-sidebar" onclick={closeSidebar}>
-					<X size={20} />
-				</button>
-			</div>
-			
 			<div class="sidebar-content">
 				<div class="sidebar-brand">
 					<div class="brand-icon">
 						<Sparkles size={20} class="text-white" />
 					</div>
 					<div>
-						<h1 class="font-bold text-(--color-text-primary)">Admin</h1>
-						<p class="text-xs text-(--color-text-muted)">Gestion des modules</p>
+						<h1 class="font-bold text-(--color-text-primary)">Mirokaï</h1>
+						<p class="text-xs text-(--color-text-muted)">Interface admin</p>
 					</div>
+					<!-- Fermer sidebar (mobile) -->
+					<button class="close-sidebar" onclick={closeSidebar}>
+						<X size={18} />
+					</button>
 				</div>
-				
+
 				<nav class="sidebar-nav">
+					<a href="/" class="nav-item nav-item--back">
+						<ArrowLeft size={18} />
+						Retour à l'app
+					</a>
+
 					{#each navItems as item}
-						{@const isActive = $page.url.pathname === item.href || 
+						{@const isActive = $page.url.pathname === item.href ||
 							(item.href !== '/admin' && $page.url.pathname.startsWith(item.href))}
-						<a 
-							href={item.href}
-							class="nav-item"
-							class:active={isActive}
-						>
+						<a href={item.href} class="nav-item" class:active={isActive}>
 							<item.icon size={18} />
 							{item.label}
 						</a>
 					{/each}
+
+					<form method="POST" action="/api/auth/logout" class="mt-auto">
+						<button type="submit" class="nav-item nav-item--logout w-full text-left">
+							<LogOut size={18} />
+							Se déconnecter
+						</button>
+					</form>
 				</nav>
 			</div>
-			
-			<!-- Utilisateur connecté et déconnexion -->
-			<div class="sidebar-footer">
-				<div class="user-info">
-					<div class="user-avatar">
-						<User size={14} class="text-white" />
-					</div>
-					<div class="user-details">
-						<p class="user-email">{data.user.email}</p>
-						<p class="user-role">Admin</p>
-					</div>
-				</div>
-
-				<form method="POST" action="/api/auth/logout">
-					<button type="submit" class="logout-btn">
-						<LogOut size={18} />
-						<span>Se déconnecter</span>
-					</button>
-				</form>
-			</div>
 		</aside>
-		
+
 		<!-- Contenu principal -->
 		<main class="admin-main">
 			<div class="main-content">
@@ -169,64 +143,36 @@
 	/* ========================================
 	   MOBILE FIRST
 	   ======================================== */
-	
+
 	.admin-layout {
 		min-height: 100vh;
 		display: flex;
 		flex-direction: column;
 	}
 
-	/* Mobile Header */
-	.mobile-header {
+	/* FAB mobile – bouton flottant pour ouvrir la sidebar */
+	.mobile-fab {
 		display: flex;
-		align-items: center;
-		justify-content: space-between;
-		padding: 0.75rem 1rem;
-		background: var(--color-bg-secondary);
-		border-bottom: 1px solid var(--color-border);
-		position: sticky;
-		top: 0;
-		z-index: 50;
-	}
-
-	.menu-toggle {
-		width: 40px;
-		height: 40px;
-		display: flex;
-		align-items: center;
-		justify-content: center;
-		background: none;
+		position: fixed;
+		bottom: 1.25rem;
+		right: 1.25rem;
+		z-index: 80;
+		width: 48px;
+		height: 48px;
+		border-radius: 50%;
+		background: linear-gradient(135deg, var(--magic-purple), var(--magic-magenta));
 		border: none;
-		color: var(--color-text-primary);
-		cursor: pointer;
-		border-radius: 0.5rem;
-	}
-
-	.menu-toggle:hover {
-		background: var(--color-bg-tertiary);
-	}
-
-	.mobile-title {
-		display: flex;
-		align-items: center;
-		gap: 0.5rem;
-		font-weight: 600;
-		color: var(--color-text-primary);
-	}
-
-	.back-link {
-		width: 40px;
-		height: 40px;
-		display: flex;
+		color: #fff;
 		align-items: center;
 		justify-content: center;
-		color: var(--color-text-muted);
-		border-radius: 0.5rem;
+		cursor: pointer;
+		box-shadow: 0 4px 16px rgba(158, 99, 165, 0.5);
+		transition: transform 0.2s, box-shadow 0.2s;
 	}
 
-	.back-link:hover {
-		color: var(--magic-turquoise);
-		background: var(--color-bg-tertiary);
+	.mobile-fab:hover {
+		transform: scale(1.08);
+		box-shadow: 0 6px 22px rgba(158, 99, 165, 0.65);
 	}
 
 	/* Overlay */
@@ -263,18 +209,12 @@
 		transform: translateX(0);
 	}
 
-	.sidebar-header {
-		display: flex;
-		align-items: center;
-		justify-content: space-between;
-		padding: 1rem;
-		border-bottom: 1px solid var(--color-border);
-	}
-
 	.close-sidebar {
-		width: 36px;
-		height: 36px;
-		display: flex;
+		margin-left: auto;
+		flex-shrink: 0;
+		width: 32px;
+		height: 32px;
+		display: none; /* visible uniquement en mobile via media query */
 		align-items: center;
 		justify-content: center;
 		background: none;
@@ -300,6 +240,8 @@
 		align-items: center;
 		gap: 0.75rem;
 		margin-bottom: 1.5rem;
+		padding-bottom: 1rem;
+		border-bottom: 1px solid var(--color-border);
 	}
 
 	.brand-icon {
@@ -340,64 +282,29 @@
 		border: 1px solid rgba(158, 99, 165, 0.3);
 	}
 
-	.sidebar-footer {
-		padding: 1rem;
-		border-top: 1px solid var(--color-border);
-	}
-
-	.user-info {
-		display: flex;
-		align-items: center;
-		gap: 0.75rem;
-		padding: 0.5rem;
-		margin-bottom: 0.75rem;
-	}
-
-	.user-avatar {
-		width: 32px;
-		height: 32px;
-		border-radius: 50%;
-		background: linear-gradient(135deg, var(--magic-turquoise), var(--magic-purple));
-		display: flex;
-		align-items: center;
-		justify-content: center;
-	}
-
-	.user-details {
-		flex: 1;
-		min-width: 0;
-	}
-
-	.user-email {
-		font-size: 0.75rem;
-		color: var(--color-text-primary);
-		white-space: nowrap;
-		overflow: hidden;
-		text-overflow: ellipsis;
-	}
-
-	.user-role {
-		font-size: 0.65rem;
+	.nav-item--back {
 		color: var(--color-text-muted);
+		margin-bottom: 0.5rem;
+		font-size: 0.85rem;
 	}
 
-	.logout-btn {
-		width: 100%;
-		display: flex;
-		align-items: center;
-		gap: 0.5rem;
-		padding: 0.75rem;
-		border-radius: 0.75rem;
-		font-size: 0.875rem;
+	.nav-item--logout {
+		margin-top: 1rem;
+		border-top: 1px solid var(--color-border);
+		padding-top: 1rem;
 		color: #f87171;
 		background: none;
-		border: none;
+		border-radius: 0;
+		border-left: none;
+		border-right: none;
+		border-bottom: none;
 		cursor: pointer;
-		transition: background 0.2s ease;
 	}
 
-	.logout-btn:hover {
-		background: rgba(248, 113, 113, 0.1);
+	.nav-item--logout:hover {
+		background: rgba(248, 113, 113, 0.08);
+		color: #f87171;
+		border-radius: 0.75rem;
 	}
 
 	/* Main content */
@@ -408,18 +315,28 @@
 
 	.main-content {
 		padding: 1rem;
+		max-width: 100%;
+		overflow-x: hidden;
 	}
 
 	/* ========================================
 	   DESKTOP - Sidebar fixe
 	   ======================================== */
 	
+	/* Sur mobile : afficher le bouton X dans la sidebar */
+	@media (max-width: 1023px) {
+		.close-sidebar {
+			display: flex;
+		}
+	}
+
 	@media (min-width: 1024px) {
 		.admin-layout {
 			flex-direction: row;
 		}
 
-		.mobile-header {
+		/* Masquer le FAB sur desktop */
+		.mobile-fab {
 			display: none;
 		}
 
@@ -432,10 +349,6 @@
 			transform: translateX(0);
 			width: 260px;
 			flex-shrink: 0;
-		}
-
-		.close-sidebar {
-			display: none;
 		}
 
 		.admin-main {
