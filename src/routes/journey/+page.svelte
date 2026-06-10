@@ -1,6 +1,8 @@
 <script lang="ts">
 	import JourneyMap from '$lib/components/JourneyMap.svelte';
-	import { Sparkles, Trophy, Clock, Gamepad2, ChevronRight, X, Menu } from 'lucide-svelte';
+	import VialAnimation from '$lib/components/VialAnimation.svelte';
+	import AudioPlayer from '$lib/components/AudioPlayer.svelte';
+	import { Sparkles, Trophy, Clock, Gamepad2, ChevronRight, X } from 'lucide-svelte';
 	import { onMount } from 'svelte';
 	import type { ModuleRow, MiniGameRow, JourneyNode, AppSettings, ModuleContent } from '$lib/supabase/types';
 
@@ -22,13 +24,25 @@ let currentNodeId = $state<string | null>(null);
 	// Étape interne de la modale pour les modules (intro / audio / quiz)
 	let nodeModalStep = $state<'intro' | 'audio' | 'quiz'>('intro');
 
+// Modal vidéo YouTube à afficher après l'onboarding
+let showVideoModal = $state(false);
+const youtubeVideoId = 'dQw4w9WgXcQ';
+
 	// Menu stats ouvert/fermé sur mobile
 	let showStats = $state(false);
 
-	// URL de fond du parcours
-	const backgroundUrl = $derived(settings?.journey_background_url || null);
+	// Mode de difficulté sélectionné lors de l'onboarding (famille | tech | null)
+	let difficultyMode = $state<'famille' | 'tech' | null>(null);
 
-	// Mini-jeu quiz associé au module sélectionné (s'il existe)
+	// Animation fiole au 1/3 du parcours
+	let showVialAnimation = $state(false);
+	let vialAlreadyShown = $state(false); // ne montrer qu'une fois par session
+
+	// Sous-titres audio
+	let audioCurrentTime = $state(0);
+	let audioDuration = $state(0);
+
+	// Mini-jeu attaché au module sélectionné (quiz qui suit un module)
 	const attachedQuiz = $derived(
 		selectedNode && selectedNode.type === 'module' && selectedNode.data
 			? miniGames.find(
@@ -44,18 +58,30 @@ let currentNodeId = $state<string | null>(null);
 	let selectedAnswerIndex = $state<number | null>(null);
 	let showQuizCorrection = $state(false);
 
-	const totalQuizQuestions = $derived(
-		attachedQuiz?.contenu?.questions ? attachedQuiz.contenu.questions.length : 0
-	);
+	const totalQuizQuestions = $derived(activeQuizQuestions.length);
 	const currentQuizQuestion = $derived(
-		totalQuizQuestions > 0 && attachedQuiz?.contenu?.questions
-			? attachedQuiz.contenu.questions[quizQuestionIndex]
-			: null
+		totalQuizQuestions > 0 ? activeQuizQuestions[quizQuestionIndex] : null
 	);
 
+	// URL de fond de carte (depuis les settings Supabase)
+	const backgroundUrl = $derived(settings?.journey_background_url ?? null);
+
+	// Questions du quiz sélectionnées selon le mode de difficulté
+	const activeQuizQuestions = $derived.by(() => {
+		const contenu = attachedQuiz?.contenu;
+		if (!contenu) return [];
+		if (difficultyMode === 'famille' && contenu.questions_famille?.length) {
+			return contenu.questions_famille;
+		}
+		if (difficultyMode === 'tech' && contenu.questions_tech?.length) {
+			return contenu.questions_tech;
+		}
+		return contenu.questions || [];
+	});
+
 	const isLastQuizQuestion = $derived(
-		attachedQuiz?.contenu?.questions
-			? quizQuestionIndex === attachedQuiz.contenu.questions.length - 1
+		activeQuizQuestions.length > 0
+			? quizQuestionIndex === activeQuizQuestions.length - 1
 			: false
 	);
 
@@ -114,37 +140,68 @@ let currentNodeId = $state<string | null>(null);
 				}
 			}
 
-			// Charger les infos d'onboarding pour récupérer le nom de l'équipe
+			// Charger les infos d'onboarding pour récupérer le nom de l'équipe et le mode
 			const savedOnboarding = sessionStorage.getItem('mirokai-onboarding');
 			if (savedOnboarding) {
 				try {
 					const onboarding = JSON.parse(savedOnboarding);
 					teamName = onboarding.teamName || null;
+					difficultyMode = onboarding.mode || null;
 				} catch (e) {
 					console.error('Error loading onboarding:', e);
 				}
+			}
+
+			// Afficher la modale vidéo une fois par session (à chaque arrivée sur /journey)
+			const videoAlreadySeen = sessionStorage.getItem('mirokai-video-seen');
+			if (!videoAlreadySeen) {
+				showVideoModal = true;
+				sessionStorage.setItem('mirokai-video-seen', 'true');
+			}
+			// Compatibilité avec l'ancien flag venant de l'onboarding
+			sessionStorage.removeItem('mirokai-show-video-modal');
+
+			// Restaurer l'état de la fiole si déjà montrée cette session
+			if (sessionStorage.getItem('mirokai-vial-shown') === 'true') {
+				vialAlreadyShown = true;
 			}
 		}
 
 		isLoading = false;
 	});
 
-	function handleNodeClick(node: JourneyNode) {
-		selectedNode = node;
-		// Toujours revenir à la première "page" quand on ouvre la modale
-		if (node.type === 'module') {
-			nodeModalStep = 'intro';
-			quizQuestionIndex = 0;
-			selectedAnswerIndex = null;
-			showQuizCorrection = false;
-		}
-	}
-
 	function closeModal() {
 		selectedNode = null;
 		selectedAnswerIndex = null;
 		showQuizCorrection = false;
 	}
+
+	function closeVideoModal() {
+		showVideoModal = false;
+	}
+
+	function handleNodeClick(node: JourneyNode) {
+		selectedNode = node;
+		nodeModalStep = 'intro';
+		quizQuestionIndex = 0;
+		selectedAnswerIndex = null;
+		showQuizCorrection = false;
+	}
+
+	function closeVialAnimation() {
+		showVialAnimation = false;
+	}
+
+	// Déclencher la fiole quand l'utilisateur atteint exactement 1/3 des modules
+	$effect(() => {
+		if (vialAlreadyShown || totalNodes === 0) return;
+		const threshold = Math.ceil(totalNodes / 3);
+		if (completedModuleIds.length >= threshold) {
+			showVialAnimation = true;
+			vialAlreadyShown = true;
+			sessionStorage.setItem('mirokai-vial-shown', 'true');
+		}
+	});
 
 	function goToAudioStep() {
 		if (selectedNode?.type === 'module') {
@@ -177,7 +234,7 @@ let currentNodeId = $state<string | null>(null);
 	}
 
 	function handleQuizValidate() {
-		if (!attachedQuiz || !attachedQuiz.contenu?.questions) return;
+		if (!attachedQuiz || activeQuizQuestions.length === 0) return;
 		if (!currentQuizQuestion || selectedAnswerIndex === null) return;
 
 		// Première validation : on affiche la bonne réponse
@@ -232,7 +289,45 @@ let currentNodeId = $state<string | null>(null);
 		completedNodeIds = [];
 		currentNodeId = null;
 		userScore = 0;
+		vialAlreadyShown = false;
 		sessionStorage.removeItem('mirokai-progress');
+		sessionStorage.removeItem('mirokai-vial-shown');
+	}
+
+	// Sous-titres : découper le texte en phrases, mettre en évidence la phrase courante
+	function getSubtitlePhrases(texte: string): string[] {
+		return texte
+			.split(/(?<=[.!?…])\s+|[\n\r]+/)
+			.map((s) => s.trim())
+			.filter(Boolean);
+	}
+
+	function getActiveSubtitleIndex(phrases: string[], currentTime: number, duration: number): number {
+		if (!duration || phrases.length === 0) return 0;
+		// Pondérer chaque phrase par son nombre de caractères :
+		// une phrase longue occupe plus de temps qu'une phrase courte.
+		const totalChars = phrases.reduce((sum, p) => sum + p.length, 0);
+		const targetChars = (currentTime / duration) * totalChars;
+		let accumulated = 0;
+		for (let i = 0; i < phrases.length; i++) {
+			accumulated += phrases[i].length;
+			if (accumulated >= targetChars) return i;
+		}
+		return phrases.length - 1;
+	}
+
+	// Action Svelte : scrolle la phrase active au centre du conteneur
+	function scrollIfActive(node: HTMLElement, isActive: boolean) {
+		if (isActive) {
+			node.scrollIntoView({ block: 'center', behavior: 'smooth' });
+		}
+		return {
+			update(newIsActive: boolean) {
+				if (newIsActive) {
+					node.scrollIntoView({ block: 'center', behavior: 'smooth' });
+				}
+			}
+		};
 	}
 </script>
 
@@ -319,17 +414,51 @@ let currentNodeId = $state<string | null>(null);
 				<div class="loading-spinner"></div>
 			</div>
 		{:else}
-			<JourneyMap 
+			<JourneyMap
 				{modules}
 				{miniGames}
 				{currentNodeId}
 				{completedNodeIds}
 				{backgroundUrl}
+				enableFogOfWar={true}
 				onNodeClick={handleNodeClick}
 			/>
 		{/if}
 	</main>
 </div>
+
+<!-- Animation fiole au 1/3 du parcours -->
+<VialAnimation
+	show={showVialAnimation}
+	progressLabel="1/3"
+	onClose={closeVialAnimation}
+/>
+
+<!-- Modal vidéo YouTube après redirection depuis l'onboarding -->
+{#if showVideoModal}
+	<div class="modal-overlay" onclick={closeVideoModal} role="dialog" aria-modal="true" tabindex="-1" onkeydown={(e) => e.key === 'Escape' && closeVideoModal()}>
+		<div class="modal-content glass modal-video" role="document" onclick={(e) => e.stopPropagation()}>
+			<button class="modal-close" onclick={closeVideoModal} aria-label="Fermer">
+				<X size={20} />
+			</button>
+
+			<h2 class="video-modal-title">Bienvenue sur Mirokaï</h2>
+			<p class="video-modal-description">Découvre en vidéo comment fonctionne ton aventure.</p>
+
+			<div class="video-player-wrapper">
+				<iframe
+					title="YouTube video player"
+					width="100%"
+					height="315"
+					src={`https://www.youtube.com/embed/${youtubeVideoId}?autoplay=1&rel=0`}
+					frameborder="0"
+					allow="autoplay; encrypted-media; picture-in-picture"
+					allowfullscreen={true}
+				></iframe>
+			</div>
+		</div>
+	</div>
+{/if}
 
 <!-- Modal de détails du nœud -->
 {#if selectedNode}
@@ -400,11 +529,28 @@ let currentNodeId = $state<string | null>(null);
 
 									{#if moduleContent?.mediaUrl}
 										<div class="module-audio-player">
-											<audio
-												controls
+											<AudioPlayer
 												src={moduleContent.mediaUrl}
-												class="audio-player"
-											></audio>
+												onTimeUpdate={(t, d) => { audioCurrentTime = t; audioDuration = d; }}
+											/>
+
+											<!-- Sous-titres synchronisés -->
+											{#if moduleContent.texte}
+												{@const phrases = getSubtitlePhrases(moduleContent.texte)}
+												{@const activeIdx = getActiveSubtitleIndex(phrases, audioCurrentTime, audioDuration)}
+												<div class="subtitles-container">
+													{#each phrases as phrase, idx}
+														<p
+															class="subtitle-phrase"
+															class:is-active={idx === activeIdx && audioDuration > 0}
+															class:is-past={idx < activeIdx && audioDuration > 0}
+															use:scrollIfActive={idx === activeIdx && audioDuration > 0}
+														>
+															{phrase}
+														</p>
+													{/each}
+												</div>
+											{/if}
 										</div>
 									{:else}
 										<p class="module-description">
@@ -1015,6 +1161,44 @@ let currentNodeId = $state<string | null>(null);
 	}
 
 	/* ========================================
+	   SOUS-TITRES SYNCHRONISÉS
+	   ======================================== */
+
+	.subtitles-container {
+		margin-top: 0.75rem;
+		max-height: 140px;
+		overflow-y: auto;
+		scroll-behavior: smooth;
+		display: flex;
+		flex-direction: column;
+		gap: 0.4rem;
+		padding: 0.5rem 0.25rem;
+		/* Masque en haut et en bas pour effet de défilement */
+		-webkit-mask-image: linear-gradient(to bottom, transparent 0%, black 15%, black 85%, transparent 100%);
+		mask-image: linear-gradient(to bottom, transparent 0%, black 15%, black 85%, transparent 100%);
+	}
+
+	.subtitle-phrase {
+		font-size: 0.82rem;
+		line-height: 1.5;
+		color: rgba(148, 163, 184, 0.5);
+		margin: 0;
+		padding: 0.2rem 0.5rem;
+		border-radius: 0.4rem;
+		transition: color 0.3s ease, background 0.3s ease;
+	}
+
+	.subtitle-phrase.is-active {
+		color: #f1f5f9;
+		background: rgba(14, 170, 162, 0.12);
+		font-weight: 500;
+	}
+
+	.subtitle-phrase.is-past {
+		color: rgba(148, 163, 184, 0.35);
+	}
+
+	/* ========================================
 	   QUIZ SCREEN - style proche de la maquette
 	   ======================================== */
 
@@ -1233,6 +1417,41 @@ let currentNodeId = $state<string | null>(null);
 			max-height: 80vh;
 			border-radius: 1.5rem;
 			animation: scaleIn 0.3s ease;
+		}
+
+		.modal-video {
+			width: 100%;
+			padding: 2rem 1.5rem 1.5rem;
+			gap: 1rem;
+		}
+
+		.video-modal-title {
+			margin: 0 0 0.25rem;
+			font-size: 1.4rem;
+		}
+
+		.video-modal-description {
+			margin: 0 0 1.25rem;
+			color: rgba(255, 255, 255, 0.78);
+			line-height: 1.5;
+		}
+
+		.video-player-wrapper {
+			position: relative;
+			width: 100%;
+			height: 0;
+			padding-bottom: 56.25%;
+			overflow: hidden;
+			border-radius: 1rem;
+			background: #000;
+		}
+
+		.video-player-wrapper iframe {
+			position: absolute;
+			top: 0;
+			left: 0;
+			width: 100%;
+			height: 100%;
 		}
 
 		@keyframes scaleIn {

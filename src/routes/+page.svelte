@@ -1,21 +1,15 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
 
-	// Étape du mini-onboarding (1 = choix du mode, 2 = équipe)
 	let step = $state(1);
 
-	// Données du formulaire
-	type Mode = 'quest' | 'tech';
-	let selectedMode = $state<Mode | null>('quest');
+	type Mode = 'famille' | 'tech';
+	let selectedMode = $state<Mode | null>(null);
 	let teamName = $state('');
 	let adventurersCount = $state(1);
 
 	const MIN_ADVENTURERS = 1;
 	const MAX_ADVENTURERS = 6;
-
-	function selectMode(mode: Mode) {
-		selectedMode = mode;
-	}
 
 	function nextStep() {
 		if (!selectedMode) return;
@@ -23,638 +17,449 @@
 	}
 
 	function increment() {
-		if (adventurersCount < MAX_ADVENTURERS) {
-			adventurersCount += 1;
-		}
+		if (adventurersCount < MAX_ADVENTURERS) adventurersCount += 1;
 	}
 
 	function decrement() {
-		if (adventurersCount > MIN_ADVENTURERS) {
-			adventurersCount -= 1;
-		}
+		if (adventurersCount > MIN_ADVENTURERS) adventurersCount -= 1;
 	}
 
 	function validateAndStart() {
-		// On sauvegarde simplement les infos dans sessionStorage pour la session en cours
 		if (typeof window !== 'undefined') {
-			const payload = {
+			sessionStorage.setItem('mirokai-onboarding', JSON.stringify({
 				mode: selectedMode,
 				teamName: teamName.trim() || null,
 				adventurersCount
-			};
-			sessionStorage.setItem('mirokai-onboarding', JSON.stringify(payload));
+			}));
+			sessionStorage.removeItem('mirokai-video-seen');
 		}
-
-		// Redirection vers la carte
 		goto('/journey');
 	}
 </script>
 
 <svelte:head>
 	<title>Mirokaï Experience — Bienvenue</title>
-	<meta name="description" content="Choisis ton mode d'exploration et prépare ton équipe avant de partir en mission." />
 	<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
 </svelte:head>
 
-<div class="onboarding-page">
-	<!-- ÉTAPE 1 : Choix du mode -->
+<div class="page">
+	<!-- ── ÉTAPE 1 : choix du mode ── -->
 	{#if step === 1}
 		<section class="screen">
-			<div class="screen-content">
-				<header class="screen-header">
-					<img src="/icons/Logos.svg" alt="Enchanted Tools" class="brand-logo" />
-					<h1 class="title">Bienvenue Aventurier !</h1>
-					<p class="subtitle">Choisis ton mode d'exploration</p>
-				</header>
+			<header class="brand">
+				<img src="/icons/Logos.svg" alt="Enchanted Tools" class="logo" />
+			</header>
 
-				<div class="mode-list">
-					<button
-						type="button"
-						class="mode-card mode-card--quest"
-						class:mode-card--active={selectedMode === 'quest'}
-						onclick={() => selectMode('quest')}
-					>
-						<div class="mode-image-wrapper">
-							<img
-								src="/frames/Frame 81.png"
-								alt="Mode Quête - Aide Miroki à rejoindre sa planète"
-								class="mode-image"
-							/>
-						</div>
-						<div class="mode-body">
-							<h2>Mode Quête</h2>
-							<p>Aide Miroki à rejoindre sa planète&nbsp;!</p>
-						</div>
-					</button>
+			<div class="hero">
+				<h1 class="hero-title">Bienvenue<br/>Aventurier&nbsp;!</h1>
+				<p class="hero-sub">Choisis ton mode d'exploration</p>
+			</div>
 
-					<button
-						type="button"
-						class="mode-card mode-card--tech"
-						class:mode-card--active={selectedMode === 'tech'}
-						onclick={() => selectMode('tech')}
-					>
-						<div class="mode-image-wrapper">
-							<img
-								src="/frames/Frame 82.png"
-								alt="Mode Tech - Plonge dans les données de Miroki"
-								class="mode-image"
-							/>
-						</div>
-						<div class="mode-body">
-							<h2>Mode Tech</h2>
-							<p>Plonge dans les données de Miroki&nbsp;!</p>
-						</div>
-					</button>
-				</div>
-
+			<div class="mode-grid">
+				<!-- Mode Famille -->
 				<button
+					class="mode-card"
+					class:is-selected={selectedMode === 'famille'}
+					onclick={() => (selectedMode = 'famille')}
 					type="button"
-					class="primary-btn"
-					onclick={nextStep}
-					disabled={!selectedMode}
 				>
-					Valider mon mode
-					<span class="primary-btn-arrow">➜</span>
+					<div class="mode-img-wrap">
+						<img src="/frames/Frame 81.png" alt="Mode Famille" class="mode-img" />
+						{#if selectedMode === 'famille'}
+							<div class="mode-check">✓</div>
+						{/if}
+					</div>
+					<div class="mode-label">
+						<span class="mode-icon">🧩</span>
+						<div>
+							<p class="mode-name">Mode Famille</p>
+							<p class="mode-desc">Aide Miroki à rejoindre sa planète&nbsp;!</p>
+						</div>
+					</div>
+				</button>
+
+				<!-- Mode Tech -->
+				<button
+					class="mode-card"
+					class:is-selected={selectedMode === 'tech'}
+					onclick={() => (selectedMode = 'tech')}
+					type="button"
+				>
+					<div class="mode-img-wrap">
+						<img src="/frames/Frame 82.png" alt="Mode Tech" class="mode-img" />
+						{#if selectedMode === 'tech'}
+							<div class="mode-check">✓</div>
+						{/if}
+					</div>
+					<div class="mode-label">
+						<span class="mode-icon">🔬</span>
+						<div>
+							<p class="mode-name">Mode Tech</p>
+							<p class="mode-desc">Plonge dans les données de Miroki&nbsp;!</p>
+						</div>
+					</div>
 				</button>
 			</div>
+
+			<button
+				class="cta-btn"
+				class:cta-btn--ready={!!selectedMode}
+				onclick={nextStep}
+				disabled={!selectedMode}
+				type="button"
+			>
+				{selectedMode ? 'Continuer' : 'Choisis un mode'}
+				<span class="cta-arrow">→</span>
+			</button>
 		</section>
 	{/if}
 
-	<!-- ÉTAPE 2 : Infos équipe -->
+	<!-- ── ÉTAPE 2 : infos équipe ── -->
 	{#if step === 2}
 		<section class="screen">
-			<div class="screen-content screen-content--form">
-				<header class="screen-header">
-					<img src="/icons/Logos.svg" alt="Enchanted Tools" class="brand-logo" />
-				</header>
+			<header class="brand">
+				<img src="/icons/Logos.svg" alt="Enchanted Tools" class="logo" />
+			</header>
 
-				<div class="team-info-card">
-					<div class="team-info-card__image-wrapper">
-						<img
-							src="/frames/Frame 83.png"
-							alt="Mode quête - Qui part en mission ?"
-							class="team-info-card__image"
-						/>
-					</div>
-
-					<div class="team-info-card__body">
-						<h1 class="team-info-card__title">Qui part en mission&nbsp;?</h1>
-
-						<div class="field-group field-group--light">
-							<label for="team-name">Nom de ton équipe</label>
-							<input
-								id="team-name"
-								type="text"
-								placeholder="Ex&nbsp;: Les Explorateurs"
-								bind:value={teamName}
-							/>
-						</div>
-
-						<div class="field-group field-group--light">
-							<label>Nombre d'aventurier(e)s</label>
-
-							<div class="counter-row">
-								<button type="button" class="round-btn round-btn--ghost" onclick={decrement}>
-									−
-								</button>
-
-								<div class="counter-value">{adventurersCount}</div>
-
-								<button type="button" class="round-btn round-btn--primary" onclick={increment}>
-									+
-								</button>
-							</div>
-						</div>
+			<div class="card">
+				<div class="card-img-wrap">
+					<img src="/frames/Frame 83.png" alt="Équipe" class="card-img" />
+					<div class="card-mode-badge">
+						{selectedMode === 'tech' ? '🔬 Mode Tech' : '🧩 Mode Famille'}
 					</div>
 				</div>
 
-				<button
-					type="button"
-					class="primary-btn primary-btn--full primary-btn--adventure"
-					onclick={validateAndStart}
-				>
-					Direction l'aventure
-					<span class="primary-btn-arrow">→</span>
-				</button>
+				<div class="card-body">
+					<h2 class="card-title">Qui part en mission&nbsp;?</h2>
+
+					<div class="field">
+						<label for="team-name" class="field-label">Nom de ton équipe</label>
+						<input
+							id="team-name"
+							type="text"
+							placeholder="Ex : Les Explorateurs"
+							bind:value={teamName}
+							class="field-input"
+						/>
+					</div>
+
+					<div class="field">
+						<label class="field-label">Nombre d'aventurier·e·s</label>
+						<div class="counter">
+							<button class="counter-btn counter-btn--minus" type="button" onclick={decrement}>−</button>
+							<span class="counter-val">{adventurersCount}</span>
+							<button class="counter-btn counter-btn--plus" type="button" onclick={increment}>+</button>
+						</div>
+					</div>
+				</div>
 			</div>
+
+			<button class="cta-btn cta-btn--ready cta-btn--adventure" onclick={validateAndStart} type="button">
+				🚀&nbsp; Partir à l'aventure
+			</button>
+
+			<button class="back-link" onclick={() => (step = 1)} type="button">
+				← Changer de mode
+			</button>
 		</section>
 	{/if}
 </div>
 
 <style>
-	.onboarding-page {
+	/* ── Base ── */
+	.page {
 		min-height: 100vh;
 		display: flex;
 		flex-direction: column;
-		background: #050837;
+		align-items: center;
+		justify-content: center;
+		background: radial-gradient(ellipse at 20% 0%, rgba(14,170,162,.25) 0%, transparent 55%),
+		            radial-gradient(ellipse at 80% 100%, rgba(163,51,124,.2) 0%, transparent 55%),
+		            #050837;
+		padding: calc(1.5rem + env(safe-area-inset-top)) 1.25rem calc(1.5rem + env(safe-area-inset-bottom));
 		color: #fff;
-		padding: 1.25rem 1.1rem;
-		padding-top: calc(1.5rem + env(safe-area-inset-top));
-		padding-bottom: calc(1.5rem + env(safe-area-inset-bottom));
-		box-sizing: border-box;
 	}
 
 	.screen {
-		max-width: 480px;
-		margin: 0 auto;
+		width: 100%;
+		max-width: 440px;
 		display: flex;
 		flex-direction: column;
-		gap: 1.5rem;
-		height: 100%;
+		gap: 1.25rem;
+		animation: fadeUp .35s ease both;
 	}
 
-	.screen-content {
-		display: flex;
-		flex-direction: column;
-		height: 100%;
-		justify-content: space-between;
+	@keyframes fadeUp {
+		from { opacity: 0; transform: translateY(16px); }
+		to   { opacity: 1; transform: translateY(0); }
 	}
 
-	.screen-header {
-		display: flex;
-		flex-direction: column;
-		align-items: center;
-		text-align: center;
-		gap: 0.6rem;
-		margin-bottom: 1.5rem;
+	/* ── Brand ── */
+	.brand { display: flex; justify-content: center; }
+	.logo  { height: 48px; width: auto; }
+
+	/* ── Hero ── */
+	.hero { text-align: center; }
+
+	.hero-title {
+		font-size: clamp(2rem, 8vw, 2.6rem);
+		font-weight: 900;
+		line-height: 1.15;
+		margin: 0 0 .4rem;
+		background: linear-gradient(135deg, #fff 30%, rgba(14,170,162,.9));
+		-webkit-background-clip: text;
+		-webkit-text-fill-color: transparent;
+		background-clip: text;
 	}
 
-	.brand-logo {
-		height: 52px;
-		width: auto;
-	}
-
-	.title {
-		font-size: 1.7rem;
-		line-height: 1.2;
-		font-weight: 800;
-		margin: 0;
-	}
-
-	.subtitle {
+	.hero-sub {
 		margin: 0;
 		font-size: 1rem;
-		color: rgba(255, 255, 255, 0.8);
+		color: rgba(255,255,255,.65);
 	}
 
-	.mode-list {
+	/* ── Mode cards ── */
+	.mode-grid {
 		display: flex;
 		flex-direction: column;
-		gap: 1.1rem;
-		margin-bottom: 1.5rem;
+		gap: .85rem;
 	}
 
 	.mode-card {
-		border-radius: 21px;
-		border: 1px solid #e5e9ef;
-		background: #ffffff;
-		display: flex;
-		flex-direction: column;
-		padding: 0;
-		box-shadow: 0px 1px 12px rgba(0, 0, 0, 0.08);
-		cursor: pointer;
-		color: inherit;
-		transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease,
-			background 0.15s ease;
-	}
-
-	.mode-card--quest .mode-image-wrapper,
-	.mode-card--tech .mode-image-wrapper {
-		border-radius: 21px 21px 0 0;
+		background: rgba(255,255,255,.04);
+		border: 1.5px solid rgba(255,255,255,.12);
+		border-radius: 1.25rem;
 		overflow: hidden;
-		background: #f7f4ed;
-		max-height: 170px;
+		cursor: pointer;
+		text-align: left;
+		transition: border-color .2s, transform .15s, box-shadow .2s;
+		padding: 0;
+		color: inherit;
 	}
 
-	.mode-image {
-		display: block;
-		width: 100%;
-		height: auto;
-	}
-
-	.mode-body {
-		padding: 0.75rem 0.5rem 0.75rem;
-		text-align: center;
-		background: #ffffff;
-		border-radius: 0 0 21px 21px;
-	}
-
-	.mode-body h2 {
-		font-size: 1.1rem;
-		margin: 0 0 0.45rem 0;
-		font-weight: 700;
-		color: #000b55;
-	}
-
-	.mode-body p {
-		margin: 0;
-		font-size: 0.92rem;
-		color: #000b55;
-	}
-
-	.mode-card--active {
-		border-width: 3px;
-		border-color: #42a3ef;
-		box-shadow: 0 18px 40px rgba(0, 0, 0, 0.75);
+	.mode-card:hover {
+		border-color: rgba(14,170,162,.5);
 		transform: translateY(-2px);
 	}
 
-	.mode-card--active .mode-body p,
-	.mode-card--active .mode-body h2 {
-		color: #000b55;
+	.mode-card.is-selected {
+		border-color: #0EAAA2;
+		box-shadow: 0 0 0 3px rgba(14,170,162,.2), 0 12px 32px rgba(0,0,0,.4);
+		transform: translateY(-2px);
 	}
 
-	.screen-content--form {
-		margin-top: 1rem;
-	}
-
-	.screen-content--form .screen-header {
-		margin-bottom: 1rem;
-	}
-
-	.team-info-card {
-		background: #ffffff;
-		border-radius: 21px;
-		border: 1px solid #e5e9ef;
-		box-shadow: 0px 1px 12px rgba(0, 0, 0, 0.08);
-		overflow: hidden;
-		margin-bottom: 1.5rem;
-	}
-
-	.team-info-card__image-wrapper {
+	.mode-img-wrap {
 		position: relative;
-		background: #1a2352;
-		border-radius: 21px 21px 0 0;
+		background: rgba(255,255,255,.06);
+		max-height: 130px;
 		overflow: hidden;
-		max-height: 180px;
 	}
 
-	.team-info-card__image {
+	.mode-img {
 		display: block;
 		width: 100%;
 		height: auto;
+		object-fit: cover;
 	}
 
-	.team-info-card__mode-badge {
+	.mode-check {
 		position: absolute;
-		top: 0.75rem;
-		left: 0.75rem;
+		top: .6rem;
+		right: .6rem;
+		width: 26px;
+		height: 26px;
+		border-radius: 50%;
+		background: #0EAAA2;
+		color: #fff;
+		font-size: .85rem;
+		font-weight: 800;
 		display: flex;
 		align-items: center;
-		gap: 0.4rem;
-		color: #ffffff;
-		font-size: 0.9rem;
+		justify-content: center;
+		box-shadow: 0 2px 8px rgba(14,170,162,.5);
+	}
+
+	.mode-label {
+		display: flex;
+		align-items: center;
+		gap: .75rem;
+		padding: .7rem 1rem;
+	}
+
+	.mode-icon { font-size: 1.4rem; flex-shrink: 0; }
+
+	.mode-name {
+		margin: 0 0 .15rem;
+		font-size: .95rem;
+		font-weight: 700;
+		color: #fff;
+	}
+
+	.mode-desc {
+		margin: 0;
+		font-size: .8rem;
+		color: rgba(255,255,255,.55);
+	}
+
+	/* ── CTA ── */
+	.cta-btn {
+		align-self: center;
+		width: 100%;
+		padding: 1rem 1.5rem;
+		border: none;
+		border-radius: 1rem;
+		font-size: 1.05rem;
+		font-weight: 700;
+		cursor: pointer;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		gap: .5rem;
+		background: rgba(255,255,255,.08);
+		color: rgba(255,255,255,.45);
+		border: 1.5px solid rgba(255,255,255,.12);
+		transition: all .2s ease;
+	}
+
+	.cta-btn:disabled { cursor: default; }
+
+	.cta-btn--ready {
+		background: linear-gradient(135deg, #0EAAA2, #A3337C);
+		color: #fff;
+		border-color: transparent;
+		box-shadow: 0 8px 28px rgba(14,170,162,.4);
+	}
+
+	.cta-btn--ready:hover {
+		box-shadow: 0 12px 36px rgba(14,170,162,.55);
+		transform: translateY(-1px);
+	}
+
+	.cta-btn--adventure {
+		font-size: 1.1rem;
+		padding: 1.1rem 1.5rem;
+		box-shadow: 0 12px 36px rgba(14,170,162,.45);
+	}
+
+	.cta-arrow { font-size: 1.1rem; }
+
+	/* ── Team card ── */
+	.card {
+		background: #fff;
+		border-radius: 1.5rem;
+		overflow: hidden;
+		box-shadow: 0 16px 48px rgba(0,0,0,.35);
+	}
+
+	.card-img-wrap {
+		position: relative;
+		max-height: 160px;
+		overflow: hidden;
+		background: #1a2352;
+	}
+
+	.card-img { display: block; width: 100%; height: auto; object-fit: cover; }
+
+	.card-mode-badge {
+		position: absolute;
+		bottom: .6rem;
+		left: .75rem;
+		background: rgba(0,0,0,.55);
+		backdrop-filter: blur(6px);
+		color: #fff;
+		font-size: .75rem;
 		font-weight: 600;
+		padding: .25rem .65rem;
+		border-radius: 999px;
 	}
 
-	.team-info-card__mode-icon {
-		font-size: 1rem;
-	}
+	.card-body { padding: 1.25rem 1.25rem 1.5rem; }
 
-	.team-info-card__body {
-		padding: 1.25rem 1.25rem 1.5rem;
-	}
-
-	.team-info-card__title {
-		font-size: 1.5rem;
+	.card-title {
+		font-size: 1.4rem;
 		font-weight: 800;
 		color: #1d1938;
-		margin: 0 0 1rem 0;
-		line-height: 1.2;
+		margin: 0 0 1.25rem;
 	}
 
-	.field-group--light label {
-		color: #1d1938;
-	}
+	/* ── Fields ── */
+	.field { display: flex; flex-direction: column; gap: .5rem; margin-bottom: 1rem; }
 
-	.field-group--light input {
-		background: #f5f5f5;
-		color: #1d1938;
-		border: 1px solid #e0e0e0;
-	}
-
-	.round-btn {
-		width: 48px;
-		height: 48px;
-		border-radius: 999px;
-		display: flex;
-		align-items: center;
-		justify-content: center;
-		font-size: 1.5rem;
+	.field-label {
+		font-size: .85rem;
 		font-weight: 600;
-		cursor: pointer;
-		transition: background 0.15s ease, transform 0.15s ease;
+		color: #1d1938;
 	}
 
-	.round-btn--ghost {
-		background: rgba(255, 255, 255, 0.25);
-		color: #ffffff;
-		border: 1px solid rgba(255, 255, 255, 0.4);
+	.field-input {
+		background: #f5f6fa;
+		border: 1.5px solid #e0e0e0;
+		border-radius: .75rem;
+		padding: .8rem 1rem;
+		font-size: .95rem;
+		color: #1d1938;
+		outline: none;
+		transition: border-color .2s;
 	}
 
-	.round-btn--ghost:hover {
-		background: rgba(255, 255, 255, 0.35);
-	}
+	.field-input:focus { border-color: #0EAAA2; }
 
-	.round-btn {
-		width: 48px;
-		height: 48px;
-		border-radius: 50%;
-		font-size: 1.5rem;
-		font-weight: 600;
+	/* ── Counter ── */
+	.counter {
 		display: flex;
 		align-items: center;
-		justify-content: center;
-		cursor: pointer;
-		transition: background 0.15s ease, transform 0.15s ease;
+		gap: 1.5rem;
+		margin-top: .25rem;
 	}
 
-	.round-btn--ghost {
-		background: rgba(26, 35, 82, 0.15);
+	.counter-val {
+		font-size: 2rem;
+		font-weight: 800;
 		color: #1d1938;
-		border: 1px solid rgba(26, 35, 82, 0.25);
+		min-width: 2.5rem;
+		text-align: center;
 	}
 
-	.round-btn--ghost:hover {
-		background: rgba(26, 35, 82, 0.25);
-	}
-
-	.round-btn {
-		width: 48px;
-		height: 48px;
-		border-radius: 50%;
-		font-size: 1.5rem;
-		line-height: 1;
-		display: flex;
-		align-items: center;
-		justify-content: center;
-		cursor: pointer;
-		transition: background 0.2s ease, transform 0.15s ease;
-	}
-
-	.round-btn--ghost {
-		background: rgba(255, 255, 255, 0.2);
-		color: #ffffff;
-		border: 1px solid rgba(255, 255, 255, 0.3);
-	}
-
-	.round-btn--ghost:hover {
-		background: rgba(255, 255, 255, 0.25);
-	}
-
-	.field-group--light .round-btn--ghost {
-		background: #e8e8e8;
-		color: #1d1938;
-		border: 1px solid #d0d0d0;
-	}
-
-	.field-group--light .round-btn--ghost:hover {
-		background: #ddd;
-	}
-
-	.field-group--light .counter-value {
-		color: #1d1938;
-	}
-
-	.round-btn {
+	.counter-btn {
 		width: 44px;
 		height: 44px;
 		border-radius: 50%;
-		display: flex;
-		align-items: center;
-		justify-content: center;
-		font-size: 1.25rem;
-		font-weight: 600;
-		cursor: pointer;
-		transition: background 0.15s ease, transform 0.1s ease;
-	}
-
-	.round-btn--ghost {
-		background: rgba(255, 255, 255, 0.2);
-		color: #ffffff;
-		border: 2px solid rgba(255, 255, 255, 0.3);
-	}
-
-	.round-btn--ghost:hover {
-		background: rgba(255, 255, 255, 0.3);
-	}
-
-	.round-btn {
-		width: 48px;
-		height: 48px;
-		border-radius: 50%;
-		font-size: 1.5rem;
-		line-height: 1;
-		display: flex;
-		align-items: center;
-		justify-content: center;
-		cursor: pointer;
-		transition: background 0.2s ease, color 0.2s ease;
-		border: 2px solid transparent;
-	}
-
-	.round-btn--ghost {
-		background: rgba(255, 255, 255, 0.2);
-		color: #ffffff;
-		border-color: rgba(255, 255, 255, 0.3);
-	}
-
-	.round-btn--ghost:hover {
-		background: rgba(255, 255, 255, 0.3);
-	}
-
-	.round-btn--primary {
-		background: #1a2352;
-		color: #ffffff;
 		border: none;
-		box-shadow: 0 2px 8px rgba(26, 35, 82, 0.3);
-	}
-
-	.team-info-card .round-btn--ghost {
-		background: rgba(0, 0, 0, 0.06);
-		color: #1d1938;
-		border-color: #e0e0e0;
-	}
-
-	.team-info-card .round-btn--ghost:hover {
-		background: rgba(0, 0, 0, 0.1);
-	}
-
-	.team-info-card .counter-value {
-		color: #1d1938;
-	}
-
-	.round-btn--primary:hover {
-		background: #252d5c;
-	}
-
-	.round-btn--primary:hover {
-		background: #252d5c;
-	}
-
-	.round-btn--primary:hover {
-		background: #252d5c;
-	}
-
-	.primary-btn--adventure {
-		background: #1a2352;
-		color: #ffffff;
-		width: 100%;
-		max-width: 320px;
-		box-shadow: 0 14px 32px rgba(26, 35, 82, 0.4);
-	}
-
-	.primary-btn--adventure:hover {
-		background: #252d5c;
-	}
-
-	.step-label {
-		font-size: 0.85rem;
-		color: rgba(255, 255, 255, 0.7);
-		margin-bottom: 0.5rem;
-	}
-
-	.field-group {
-		display: flex;
-		flex-direction: column;
-		gap: 0.6rem;
-		margin-top: 1.5rem;
-	}
-
-	.field-group label {
-		font-size: 0.9rem;
-		font-weight: 600;
-	}
-
-	input[type='text'] {
-		background: rgba(255, 255, 255, 0.96);
-		color: #1d1938;
-		border-radius: 0.9rem;
-		border: none;
-		padding: 0.9rem 1rem;
-		font-size: 0.95rem;
-		box-shadow: 0 6px 18px rgba(0, 0, 0, 0.35);
-	}
-
-	input::placeholder {
-		color: rgba(18, 15, 40, 0.55);
-	}
-
-	.counter-row {
-		display: flex;
-		align-items: center;
-		justify-content: space-between;
-		margin-top: 1rem;
-	}
-
-	.counter-value {
-		font-size: 2.3rem;
+		font-size: 1.4rem;
 		font-weight: 700;
-	}
-
-	.dots-row {
-		display: flex;
-		gap: 0.75rem;
-		margin-top: 1.5rem;
-	}
-
-	.dot {
-		width: 24px;
-		height: 24px;
-		border-radius: 999px;
-		background: rgba(255, 255, 255, 0.16);
+		cursor: pointer;
 		display: flex;
 		align-items: center;
 		justify-content: center;
-		font-size: 0.8rem;
-		color: #1b163f;
+		transition: transform .1s, background .15s;
 	}
 
-	.dot--active {
-		background: #f4b53a;
+	.counter-btn--minus {
+		background: #f0f0f0;
+		color: #1d1938;
 	}
 
-	.primary-btn {
-		margin-top: 0.5rem;
-		width: 221px;
+	.counter-btn--minus:hover { background: #e0e0e0; }
+
+	.counter-btn--plus {
+		background: linear-gradient(135deg, #0EAAA2, #A3337C);
+		color: #fff;
+		box-shadow: 0 4px 12px rgba(14,170,162,.4);
+	}
+
+	.counter-btn--plus:hover { transform: scale(1.08); }
+
+	/* ── Back link ── */
+	.back-link {
 		align-self: center;
-		border-radius: 12px;
-		padding: 0.9rem 1.4rem;
+		background: none;
 		border: none;
-		font-size: 1rem;
-		font-weight: 700;
-		background: rgba(0, 0, 0, 0.25);
-		color: #ffffff;
+		color: rgba(255,255,255,.45);
+		font-size: .85rem;
 		cursor: pointer;
-		display: flex;
-		align-items: center;
-		justify-content: center;
-		gap: 0.5rem;
-		box-shadow: 0 14px 32px rgba(0, 0, 0, 0.55);
+		padding: .25rem .5rem;
+		transition: color .2s;
 	}
 
-	.primary-btn:disabled {
-		opacity: 0.4;
-		cursor: default;
-		box-shadow: none;
-	}
-
-	.primary-btn:active {
-		color: #848484;
-		box-shadow:
-			0 0 0 0 rgba(66, 163, 239, 0.0),
-			0 0 25px 12px rgba(66, 163, 239, 0.48);
-	}
-
-	.primary-btn-arrow {
-		font-size: 1.1rem;
-	}
-
-	@media (min-width: 768px) {
-		.onboarding-page {
-			align-items: center;
-			justify-content: center;
-		}
-	}
+	.back-link:hover { color: rgba(255,255,255,.75); }
 </style>
-

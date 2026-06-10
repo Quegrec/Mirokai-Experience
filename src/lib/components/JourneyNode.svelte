@@ -160,7 +160,16 @@
 					class="module-icon-svg"
 					loading="lazy"
 				/>
-				<span class="module-number">{node.ordre}</span>
+				{#if (node.data as ModuleRow).type === 'video'}
+					<!-- Triangle Play pour les modules vidéo -->
+					<div class="module-play-icon">
+						<svg viewBox="0 0 24 24" fill="currentColor" width="20" height="20">
+							<path d="M8 5.14v14l11-7-11-7z" />
+						</svg>
+					</div>
+				{:else}
+					<span class="module-number">{node.ordre}</span>
+				{/if}
 			</div>
 		{:else}
 			<div class="node-icon">
@@ -303,6 +312,19 @@
 		pointer-events: none;
 		/* Légère compensation pour le volume 3D du SVG */
 		transform: translateY(-4px);
+	}
+
+	/* Triangle Play pour modules vidéo */
+	.module-play-icon {
+		position: absolute;
+		inset: 0;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		color: #ffffff;
+		filter: drop-shadow(0 0 4px rgba(0, 0, 0, 0.8));
+		pointer-events: none;
+		transform: translateY(-4px) translateX(1px); /* compensation optique : SVG 3D + centrage visuel */
 	}
 
 	/* États */

@@ -8,15 +8,17 @@
 		currentNodeId?: string | null;
 		completedNodeIds?: string[];
 		backgroundUrl?: string | null;
+		enableFogOfWar?: boolean;
 		onNodeClick?: (node: JourneyNode) => void;
 	}
 
-	let { 
-		modules = [], 
+	let {
+		modules = [],
 		miniGames = [],
 		currentNodeId = null,
 		completedNodeIds = [],
 		backgroundUrl = null,
+		enableFogOfWar = false,
 		onNodeClick
 	}: Props = $props();
 
@@ -81,6 +83,20 @@
 		}
 	}
 
+	// Fog of war : griser la portion de carte non encore atteinte.
+	// La carte progresse de bas (Y élevé = début) vers haut (Y faible = fin).
+	// On cherche le nœud atteint le plus haut (Y le plus faible parmi completed/current/available).
+	// Tout ce qui est au-dessus de ce seuil (Y plus faible encore) est grisé.
+	const fogCutoffY = $derived.by(() => {
+		if (!enableFogOfWar) return null;
+		const reachedNodes = journeyNodes.filter(
+			(n) => n.status === 'completed' || n.status === 'current' || n.status === 'available'
+		);
+		if (reachedNodes.length === 0) return null;
+		// Le Y minimum (le plus haut sur l'écran) parmi les nœuds atteints
+		return Math.min(...reachedNodes.map((n) => n.position.y));
+	});
+
 	function handleBackgroundLoaded() {
 		// Quand l'image est chargée, on scrolle en bas de la page
 		if (typeof window !== 'undefined') {
@@ -123,11 +139,11 @@
 		<!-- Nœuds positionnés sur la carte -->
 		<div class="nodes-layer">
 			{#each journeyNodes as node, i (node.id)}
-				<div 
+				<div
 					class="node-wrapper"
 					style="left: {node.position.x}%; top: {node.position.y}%;"
 				>
-					<JourneyNodeComponent 
+					<JourneyNodeComponent
 						{node}
 						index={i}
 						onClick={() => handleNodeClick(node)}
@@ -135,6 +151,27 @@
 				</div>
 			{/each}
 		</div>
+
+		<!-- Grayscale overlay sur la partie non encore explorée -->
+		{#if enableFogOfWar && fogCutoffY !== null}
+			<div
+				class="grayscale-overlay"
+				style="
+					height: {fogCutoffY}%;
+					-webkit-mask-image: linear-gradient(to bottom,
+						black 0%,
+						black calc(100% - 60px),
+						transparent 100%
+					);
+					mask-image: linear-gradient(to bottom,
+						black 0%,
+						black calc(100% - 60px),
+						transparent 100%
+					);
+				"
+				aria-hidden="true"
+			></div>
+		{/if}
 	</div>
 
 </div>
@@ -226,5 +263,19 @@
 		position: absolute;
 		transform: translate(-50%, -50%);
 		z-index: 10;
+	}
+
+	/* Grayscale overlay – désature la partie non encore explorée */
+	.grayscale-overlay {
+		position: absolute;
+		top: 0;
+		left: 0;
+		width: 100%;
+		/* height est injectée en inline pour suivre fogCutoffY */
+		z-index: 5; /* sous les nœuds (z-index: 10) */
+		pointer-events: none;
+		backdrop-filter: grayscale(1) brightness(0.75);
+		-webkit-backdrop-filter: grayscale(1) brightness(0.75);
+		transition: height 0.8s ease;
 	}
 </style>

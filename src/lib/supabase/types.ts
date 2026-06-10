@@ -8,6 +8,7 @@ export interface ModuleContent {
 	mediaUrl?: string;
 	texte?: string;
 	instructions?: string[];
+	subtitlesUrl?: string; // URL optionnelle vers un fichier .vtt pour les sous-titres synchronisés
 }
 
 export interface ModulePosition {
@@ -61,13 +62,17 @@ export interface ModuleUpdate {
 
 // === MINI-JEUX ===
 
+export type QuizQuestion = {
+	question: string;
+	options: string[];
+	correctIndex: number;
+};
+
 export interface MiniGameContent {
 	// Contenu spécifique selon le type de jeu
-	questions?: Array<{
-		question: string;
-		options: string[];
-		correctIndex: number;
-	}>;
+	questions?: QuizQuestion[];          // Questions communes (défault)
+	questions_famille?: QuizQuestion[];  // Questions mode Famille (accessibles, grand public)
+	questions_tech?: QuizQuestion[];     // Questions mode Tech (avancées, techniques)
 	pairs?: Array<{
 		id: string;
 		content: string;

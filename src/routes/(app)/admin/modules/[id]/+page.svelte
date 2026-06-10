@@ -5,7 +5,9 @@
 	import { createSupabaseClient } from '$lib/supabase/client';
 	import { zones } from '$lib/data/zones';
 	import type { ModuleType, ModuleStatus } from '$lib/supabase/types';
-	import { ArrowLeft, Save, Trash2, Sparkles, AlertCircle } from 'lucide-svelte';
+	import { ArrowLeft, Save, Trash2, Sparkles, AlertCircle, Upload, Music } from 'lucide-svelte';
+	import HelpTip from '$lib/components/HelpTip.svelte';
+	import AudioPlayer from '$lib/components/AudioPlayer.svelte';
 
 	const moduleTypeLabels: Record<ModuleType, string> = {
 		video: 'Vidéo',
@@ -52,6 +54,37 @@
 	let isUploadingAudio = $state(false);
 	let uploadError = $state<string | null>(null);
 	let audioLang = $state<'FR' | 'EN'>('FR');
+
+	// Transcription automatique via Groq Whisper
+	let isTranscribing = $state(false);
+	let transcribeError = $state<string | null>(null);
+
+	async function transcribeAudio() {
+		if (!mediaUrl.trim()) return;
+		isTranscribing = true;
+		transcribeError = null;
+
+		try {
+			const res = await fetch('/api/transcribe', {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({ audioUrl: mediaUrl.trim() })
+			});
+
+			if (!res.ok) {
+				const err = await res.json().catch(() => ({ message: res.statusText }));
+				throw new Error(err.message || res.statusText);
+			}
+
+			const { transcript } = await res.json();
+			texte = transcript;
+			markChanged();
+		} catch (e: unknown) {
+			transcribeError = e instanceof Error ? e.message : 'Erreur lors de la transcription';
+		}
+
+		isTranscribing = false;
+	}
 
 	// Initialiser les valeurs quand le module change
 	$effect(() => {
@@ -297,8 +330,9 @@
 
 				<div class="grid sm:grid-cols-2 gap-4">
 					<div>
-						<label for="type" class="text-sm text-(--color-text-secondary) block mb-2">
+						<label for="type" class="text-sm text-(--color-text-secondary) flex items-center gap-1.5 mb-2">
 							Type de module
+							<HelpTip text="Le type détermine l'icône sur la carte. Un module «Vidéo» affiche un triangle ▶ à la place du numéro. Choisissez «Expérience» ou «Info» pour les étapes sans média." />
 						</label>
 						<select 
 							id="type"
@@ -369,8 +403,9 @@
 				<h2 class="font-semibold text-(--color-text-primary)">Contenu</h2>
 
 				<div class="space-y-3">
-					<label for="mediaUrl" class="text-sm text-(--color-text-secondary) block mb-1">
+					<label for="mediaUrl" class="text-sm text-(--color-text-secondary) flex items-center gap-1.5 mb-1">
 						URL de l’audioguide
+						<HelpTip text="Collez l’URL publique du fichier audio (hébergé sur Supabase Storage ou ailleurs). Formats acceptés : MP3, MP4, WAV, OGG. Après upload, l’URL s’affiche automatiquement dans ce champ." position="right" />
 					</label>
 					<input 
 						type="text"
@@ -381,80 +416,118 @@
 						class="w-full px-4 py-3 rounded-xl bg-[var(--color-bg-tertiary)] border border-[var(--color-border)] text-(--color-text-primary) placeholder:text-(--color-text-muted) focus:outline-none focus:border-[var(--magic-turquoise)] transition-colors"
 					/>
 
-					<div class="space-y-2">
-						<label class="text-xs text-(--color-text-secondary) block">
-							Ou uploader un fichier vers Supabase Storage (bucket <code>audioguides</code>)
-						</label>
-						<div class="flex flex-col sm:flex-row gap-2 items-start sm:items-center">
+					<!-- Zone d’upload mise en évidence -->
+					<div class="upload-zone">
+						<div class="upload-zone__header">
+							<Music size={18} class="text-(--magic-turquoise)" />
+							<span class="upload-zone__title">Uploader un audioguide</span>
+							<select
+								bind:value={audioLang}
+								class="upload-zone__lang"
+							>
+								<option value="FR">🇫🇷 FR</option>
+								<option value="EN">🇬🇧 EN</option>
+							</select>
+						</div>
+
+						<label class="upload-zone__droparea" class:has-file={!!audioFile}>
 							<input
 								type="file"
 								accept="audio/*,video/mp4"
 								onchange={handleAudioFileChange}
-								class="text-xs text-(--color-text-secondary)"
+								class="sr-only"
 							/>
-							<select
-								bind:value={audioLang}
-								class="px-2 py-1 rounded-lg bg-(--color-bg-tertiary) border border-(--color-border) text-xs text-(--color-text-primary)"
-							>
-								<option value="FR">FR</option>
-								<option value="EN">EN</option>
-							</select>
+							{#if audioFile}
+								<div class="upload-zone__file-info">
+									<Music size={20} class="text-(--magic-turquoise)" />
+									<span class="upload-zone__filename">{audioFile.name}</span>
+									<span class="upload-zone__filesize">
+										{(audioFile.size / 1024 / 1024).toFixed(1)} MB
+									</span>
+								</div>
+							{:else}
+								<Upload size={22} class="text-(--color-text-muted)" />
+								<p class="upload-zone__hint">
+									Cliquez ou déposez un fichier ici<br/>
+									<span>MP3 · MP4 · WAV · OGG</span>
+								</p>
+							{/if}
+						</label>
+
+						{#if audioFile}
 							<button
 								type="button"
 								onclick={uploadAudio}
-								disabled={isUploadingAudio || !audioFile}
-								class="px-3 py-1.5 rounded-lg btn-magic text-xs text-white disabled:opacity-50"
+								disabled={isUploadingAudio}
+								class="upload-zone__btn"
 							>
-								{isUploadingAudio ? 'Upload...' : 'Uploader'}
+								{#if isUploadingAudio}
+									<div class="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+									Upload en cours…
+								{:else}
+									<Upload size={15} />
+									Uploader vers Supabase
+								{/if}
 							</button>
-						</div>
-						{#if uploadError}
-							<p class="text-xs text-red-400">{uploadError}</p>
 						{/if}
-						{#if mediaUrl}
-							<p class="text-xs text-(--color-text-muted) break-all">
-								Audioguide actuel : {mediaUrl}
-							</p>
+
+						{#if uploadError}
+							<p class="text-xs text-red-400 mt-1">{uploadError}</p>
 						{/if}
 					</div>
 				</div>
 
 				{#if mediaUrl}
 					<div class="space-y-2">
-						<p class="text-xs text-(--color-text-secondary)">
-							Aperçu de l’audioguide
-						</p>
-						<audio
-							controls
-							src={mediaUrl}
-							class="w-full"
-						></audio>
+						<p class="text-xs text-(--color-text-secondary) mb-1">Aperçu de l’audioguide</p>
+						<AudioPlayer src={mediaUrl} />
 					</div>
 				{/if}
 
 				<div>
-				<label for="texte" class="text-sm text-(--color-text-secondary) block mb-2">
-						Texte / Script
-					</label>
-					<textarea 
+					<div class="flex items-center justify-between mb-2">
+						<label for="texte" class="text-sm text-(--color-text-secondary) flex items-center gap-1.5">
+							Texte / Script
+							<HelpTip text="Ce texte s'affiche en sous-titres synchronisés pendant la lecture de l'audio. Il défile phrase par phrase en temps réel. Utilisez le bouton «Transcrire» pour le générer automatiquement depuis l'audio." />
+						</label>
+						{#if mediaUrl.trim()}
+							<button
+								type="button"
+								onclick={transcribeAudio}
+								disabled={isTranscribing}
+								class="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-medium border border-(--magic-turquoise)/40 text-(--magic-turquoise) hover:bg-(--magic-turquoise)/10 disabled:opacity-50 transition-colors"
+							>
+								{#if isTranscribing}
+									<div class="w-3 h-3 border border-current border-t-transparent rounded-full animate-spin"></div>
+									Transcription…
+								{:else}
+									🎙️ Transcrire avec Whisper
+								{/if}
+							</button>
+						{/if}
+					</div>
+					{#if transcribeError}
+						<p class="text-xs text-red-400 mb-2">{transcribeError}</p>
+					{/if}
+					<textarea
 						id="texte"
 						bind:value={texte}
 						oninput={markChanged}
-						placeholder="Texte à afficher ou script de narration..."
-						rows="4"
-						class="w-full px-4 py-3 rounded-xl bg-[var(--color-bg-tertiary)] border border-[var(--color-border)] text-(--color-text-primary) placeholder:text-(--color-text-muted) focus:outline-none focus:border-[var(--magic-turquoise)] transition-colors resize-none"
+						rows="14"
+						placeholder="Colle ici le script de l'audioguide — il deviendra les sous-titres synchronisés."
+						class="w-full px-4 py-3 rounded-xl bg-[var(--color-bg-tertiary)] border border-[var(--color-border)] text-(--color-text-primary) placeholder:text-(--color-text-muted) focus:outline-none focus:border-[var(--magic-turquoise)] transition-colors resize-y"
 					></textarea>
 				</div>
 
 				<div>
 					<div class="flex items-center justify-between mb-2">
-				<label class="text-sm text-(--color-text-secondary)">
+						<label class="text-sm text-(--color-text-secondary)">
 							Instructions
 						</label>
 						<button 
 							type="button"
 							onclick={addInstruction}
-						class="text-sm text-(--magic-turquoise) hover:underline"
+							class="text-sm text-(--magic-turquoise) hover:underline"
 						>
 							+ Ajouter
 						</button>
@@ -532,3 +605,123 @@
 		</form>
 	</div>
 {/if}
+
+<style>
+	/* ── Zone d'upload audioguide ── */
+	.upload-zone {
+		border: 1.5px dashed rgba(14, 170, 162, 0.4);
+		border-radius: 1rem;
+		padding: 1rem;
+		background: rgba(14, 170, 162, 0.04);
+		display: flex;
+		flex-direction: column;
+		gap: 0.75rem;
+		transition: border-color 0.2s, background 0.2s;
+	}
+
+	.upload-zone:focus-within {
+		border-color: rgba(14, 170, 162, 0.7);
+		background: rgba(14, 170, 162, 0.08);
+	}
+
+	.upload-zone__header {
+		display: flex;
+		align-items: center;
+		gap: 0.5rem;
+		font-size: 0.85rem;
+		font-weight: 600;
+		color: var(--color-text-primary);
+	}
+
+	.upload-zone__title { flex: 1; }
+
+	.upload-zone__lang {
+		padding: 0.2rem 0.5rem;
+		border-radius: 0.5rem;
+		background: var(--color-bg-tertiary);
+		border: 1px solid var(--color-border);
+		font-size: 0.75rem;
+		color: var(--color-text-primary);
+		cursor: pointer;
+	}
+
+	.upload-zone__droparea {
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		justify-content: center;
+		gap: 0.5rem;
+		padding: 1.25rem 1rem;
+		border-radius: 0.75rem;
+		border: 1.5px dashed var(--color-border);
+		background: var(--color-bg-tertiary);
+		cursor: pointer;
+		text-align: center;
+		transition: border-color 0.2s, background 0.2s;
+		min-height: 90px;
+	}
+
+	.upload-zone__droparea:hover,
+	.upload-zone__droparea.has-file {
+		border-color: rgba(14, 170, 162, 0.6);
+		background: rgba(14, 170, 162, 0.06);
+	}
+
+	.upload-zone__hint {
+		margin: 0;
+		font-size: 0.8rem;
+		color: var(--color-text-muted);
+		line-height: 1.5;
+	}
+
+	.upload-zone__hint span {
+		font-size: 0.7rem;
+		opacity: 0.7;
+		display: block;
+		margin-top: 0.15rem;
+	}
+
+	.upload-zone__file-info {
+		display: flex;
+		align-items: center;
+		gap: 0.5rem;
+		flex-wrap: wrap;
+		justify-content: center;
+	}
+
+	.upload-zone__filename {
+		font-size: 0.82rem;
+		font-weight: 600;
+		color: var(--magic-turquoise);
+		max-width: 220px;
+		overflow: hidden;
+		text-overflow: ellipsis;
+		white-space: nowrap;
+	}
+
+	.upload-zone__filesize {
+		font-size: 0.72rem;
+		color: var(--color-text-muted);
+	}
+
+	.upload-zone__btn {
+		width: 100%;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		gap: 0.5rem;
+		padding: 0.65rem 1rem;
+		border-radius: 0.75rem;
+		border: none;
+		background: linear-gradient(135deg, var(--magic-turquoise), var(--magic-magenta));
+		color: white;
+		font-size: 0.85rem;
+		font-weight: 600;
+		cursor: pointer;
+		box-shadow: 0 4px 14px rgba(14, 170, 162, 0.35);
+		transition: opacity 0.2s, transform 0.15s;
+	}
+
+	.upload-zone__btn:hover { opacity: 0.92; transform: translateY(-1px); }
+	.upload-zone__btn:disabled { opacity: 0.5; cursor: default; transform: none; }
+</style>
